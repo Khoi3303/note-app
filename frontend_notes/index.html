@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <title>Hệ thống Ghi chú - Xác thực</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .auth-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 350px; }
+        .auth-box h2 { margin-top: 0; text-align: center; color: #1c1e21; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 15px; }
+        
+        .btn { width: 100%; padding: 10px; background-color: #0866ff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background-color: #0056e0; }
+        .btn-register-mode { background-color: #42b72a; }
+        .btn-register-mode:hover { background-color: #36a420; }
+        
+        .toggle-text { text-align: center; margin-top: 15px; font-size: 14px; cursor: pointer; color: #0866ff; }
+        .toggle-text:hover { text-decoration: underline; }
+        
+        #message { text-align: center; margin-top: 15px; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-box">
+        <h2 id="form-title">Đăng nhập</h2>
+        
+        <div class="input-group">
+            <input type="email" id="email" placeholder="Email của bạn" required>
+        </div>
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Mật khẩu" required>
+        </div>
+        
+        <button class="btn" id="submit-btn" onclick="handleSubmit()">Đăng nhập</button>
+        
+        <div class="toggle-text" onclick="window.location.href='reset_password.html'">Quên mật khẩu? Đặt lại qua email/OTP</div>
+        <div class="toggle-text" onclick="toggleForm()" id="toggle-btn">Chưa có tài khoản? Tạo tài khoản mới</div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        // Kiểm tra nếu đã có token thì vào thẳng trang chủ
+        if (localStorage.getItem('token')) {
+            window.location.href = 'home.html';
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => { /* ignore if unavailable */ });
+        }
+
+        let isLoginMode = true;
+
+        // --- HÀM CHUYỂN ĐỔI GIỮA ĐĂNG NHẬP VÀ ĐĂNG KÝ ---
+        function toggleForm() {
+            isLoginMode = !isLoginMode;
+            
+            const title = document.getElementById('form-title');
+            const btn = document.getElementById('submit-btn');
+            const toggleText = document.getElementById('toggle-btn');
+            const messageEl = document.getElementById('message');
+
+            messageEl.innerText = ''; // Xóa thông báo cũ
+
+            if (isLoginMode) {
+                title.innerText = 'Đăng nhập';
+                btn.innerText = 'Đăng nhập';
+                btn.className = 'btn'; 
+                toggleText.innerText = 'Chưa có tài khoản? Tạo tài khoản mới';
+            } else {
+                title.innerText = 'Đăng ký Tài khoản';
+                btn.innerText = 'Đăng ký ngay';
+                btn.className = 'btn btn-register-mode'; 
+                toggleText.innerText = 'Đã có tài khoản? Quay lại Đăng nhập';
+            }
+        }
+
+        // --- HÀM XỬ LÝ KHI BẤM NÚT ---
+        async function handleSubmit() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const messageEl = document.getElementById('message');
+
+            if (!email || !password) {
+                messageEl.style.color = 'red';
+                messageEl.innerText = 'Vui lòng nhập đủ email và mật khẩu!';
+                return;
+            }
+
+            messageEl.style.color = 'blue';
+            messageEl.innerText = 'Đang xử lý...';
+
+            const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+            
+            try {
+                const response = await fetch(`${window.location.origin}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.style.color = 'green';
+                    messageEl.innerText = `✓ ${data.message}`;
+                    
+                    if (isLoginMode) {
+                        // ĐĂNG NHẬP THÀNH CÔNG: Lưu Token VÀ Tên hiển thị vào trình duyệt
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('displayName', data.displayName); 
+                        
+                        setTimeout(() => window.location.href = 'home.html', 1000);
+                    } else {
+                        // Đăng ký thành công
+                        messageEl.innerText = 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.';
+                        setTimeout(() => {
+                            toggleForm();
+                            document.getElementById('password').value = '';
+                        }, 1800);
+                    }
+                } else {
+                    messageEl.style.color = 'red';
+                    messageEl.innerText = `${data.message}`;
+                }
+            } catch (error) {
+                messageEl.style.color = 'red';
+                messageEl.innerText = 'Không thể kết nối đến máy chủ!';
+            }
+        }
+    </script>
+</body>
+</html>
