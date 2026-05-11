@@ -1,0 +1,155 @@
+﻿.label-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+.label-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 2px solid #2563eb;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease,
+        border-color 0.22s ease;
+}
+.label-chip:hover {
+    transform: translateY(-1px);
+    background: rgba(37, 99, 235, 0.15);
+    border-color: #3b82f6;
+    box-shadow:
+        0 10px 24px rgba(37, 99, 235, 0.18);
+}
+.label-chip.active {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow:
+        0 0 0 1px rgba(37,99,235,0.25),
+        0 10px 24px rgba(37,99,235,0.35);
+    transform: translateY(-1px);
+}
+.label-chip.active span {
+    color: white !important;
+}
+.label-chip.active button {
+    background: rgba(255,255,255,0.18);
+    color: white !important;
+}
+.label-chip.active:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+.label-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.label-actions button {
+    border: none;
+    background: rgba(255,255,255,0.08);
+    color: inherit;
+    border-radius: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+.label-actions button:hover {
+    transform: scale(1.05);
+    background: rgba(255,255,255,0.18);
+}
+.label-chip.active .label-actions button {
+    background: rgba(255,255,255,0.18);
+    color: white;
+}
+.label-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+.checkbox-pill,
+.label-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 2px solid #2563eb;
+    background: rgba(37, 99, 235, 0.06);
+    color: var(--text);
+    font-weight: 600;
+    transition:
+        background 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.22s ease,
+        border-color 0.22s ease;
+}
+.checkbox-pill:hover,
+.label-checkbox:hover {
+    transform: translateY(-1px);
+    background: rgba(37, 99, 235, 0.12);
+    box-shadow:
+        0 8px 20px rgba(37, 99, 235, 0.15);
+}
+.checkbox-pill input,
+.label-checkbox input {
+    width: 18px;
+    height: 18px;
+    accent-color: #2563eb;
+    cursor: pointer;
+    margin: 0;
+}
+.label-checkbox:has(input:checked),
+.checkbox-pill:has(input:checked) {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    box-shadow:
+        0 0 0 1px rgba(37,99,235,0.25),
+        0 10px 24px rgba(37,99,235,0.35);
+}
+.note-label,
+.note-label-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #3b82f6;
+    background: rgba(37, 99, 235, 0.08);
+    color: #60a5fa;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 0.22s ease,
+        color 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.22s ease,
+        box-shadow 0.22s ease;
+}
+.note-label:hover,
+.note-label-button:hover {
+    background: rgba(37, 99, 235, 0.18);
+    transform: translateY(-1px);
+}
+.note-label.active,
+.note-label-button.active {
+    background: #2563eb !important;
+    color: white !important;
+    border-color: #2563eb !important;
+    box-shadow:
+        0 0 0 1px rgba(37,99,235,0.25),
+        0 8px 20px rgba(37,99,235,0.35);
+}

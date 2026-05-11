@@ -106,11 +106,10 @@ const register = async (req, res) => {
             .input('email', sql.VarChar, email)
             .input('password_hash', sql.VarChar, hashedPassword)
             .input('display_name', sql.NVarChar, displayName)
+            .input('avatar_color', sql.NVarChar, 'blue')
             .input('email_verified', sql.Bit, 0)
             .input('verification_token', sql.VarChar(255), verificationToken)
-            .query(`INSERT INTO Users (email, password_hash, display_name, email_verified, verification_token)
-                VALUES (@email, @password_hash, @display_name, @email_verified, @verification_token)`);
-
+            .query(`INSERT INTO Users (email, password_hash, display_name, avatar_color, email_verified, verification_token) VALUES (@email, @password_hash, @display_name, @avatar_color, @email_verified, @verification_token)`);
         await sendVerificationEmail(email, verificationToken);
         res.status(201).json({ message: 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.' });
     } catch (error) {
@@ -315,5 +314,144 @@ const resendVerificationEmail = async (req, res) => {
         res.status(500).json({ message: 'Lỗi server!' });
     }
 };
-
-module.exports = { register, login, me, verifyEmail, resendVerificationEmail, requestPasswordReset, resetPassword };
+const getProfile = async (req, res) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('id', sql.Int, req.user.id)
+            .query(`
+                SELECT
+                    id,
+                    email,
+                    display_name,
+                    avatar_color,
+                    email_verified
+                FROM Users
+                WHERE id = @id
+            `);
+        const user = result.recordset[0];
+        if (!user) {
+            return res.status(404).json({
+                message: 'Không tìm thấy user'
+            });
+        }
+        res.status(200).json({
+            id: user.id,
+            email: user.email,
+            displayName: user.display_name,
+            avatarColor: user.avatar_color,
+            emailVerified: !!user.email_verified
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: 'Lỗi server'
+        });
+    }
+};
+const updateProfile = async (req, res) => {
+    try {
+        const {
+            displayName,
+            avatarColor
+        } = req.body;
+        const pool = await poolPromise;
+        await pool.request()
+            .input('id', sql.Int, req.user.id)
+            .input('display_name', sql.NVarChar, displayName)
+            .input('avatar_color', sql.NVarChar, avatarColor)
+            .query(`
+                UPDATE Users
+                SET
+                    display_name = @display_name,
+                    avatar_color = @avatar_color
+                WHERE id = @id
+            `);
+        res.status(200).json({
+            message: 'Cập nhật profile thành công'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: 'Lỗi server'
+        });
+    }
+};
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const {
+            oldPassword,
+            newPassword,
+            confirmPassword
+        } = req.body;
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                message: 'Vui lòng nhập đầy đủ thông tin!'
+            });
+        }
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                message: 'Xác nhận mật khẩu không khớp!'
+            });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                message: 'Mật khẩu mới phải từ 6 ký tự!'
+            });
+        }
+        // FIX QUAN TRỌNG
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('id', sql.Int, userId)
+            .query(`
+                SELECT *
+                FROM Users
+                WHERE id = @id
+            `);
+        const user = result.recordset[0];
+        if (!user) {
+            return res.status(404).json({
+                message: 'Không tìm thấy tài khoản!'
+            });
+        }
+        const isMatch = await bcrypt.compare(
+            oldPassword,
+            user.password_hash
+        );
+        if (!isMatch) {
+            return res.status(400).json({
+                message: 'Mật khẩu cũ không đúng!'
+            });
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await pool.request()
+            .input('id', sql.Int, userId)
+            .input('password', sql.VarChar, hashedPassword)
+            .query(`
+                UPDATE Users
+                SET password_hash = @password
+                WHERE id = @id
+            `);
+        res.status(200).json({
+            message: 'Đổi mật khẩu thành công!'
+        });
+    } catch (error) {
+        console.error('Lỗi đổi mật khẩu:', error);
+        res.status(500).json({
+            message: 'Lỗi server!'
+        });
+    }
+};
+module.exports = {
+    changePassword,
+    register,
+    login,
+    me,
+    verifyEmail,
+    resendVerificationEmail,
+    requestPasswordReset,
+    resetPassword,
+    getProfile,
+    updateProfile
+};

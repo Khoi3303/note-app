@@ -7,393 +7,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="manifest" href="manifest.json">
     <title>Ghi chú của tôi</title>
-    <style>
-        :root {
-            --bg: #f0f2f5;
-            --text: #1c1e21;
-            --muted: #555;
-            --surface: #ffffff;
-            --surface-alt: #f7f9fc;
-            --border: #ccc;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1);
-            --button-bg: #0866ff;
-            --button-color: white;
-            --secondary-bg: #ccc;
-            --secondary-color: black;
-            --card-bg: #ffffff;
-            --panel-bg: #ffffff;
-            --panel-border: #ddd;
-            --input-bg: #ffffff;
-        }
-
-        body.dark-mode {
-            --bg: #121212;
-            --text: #f5f5f5;
-            --muted: #c7c7c7;
-            --surface: #1f1f1f;
-            --surface-alt: #272727;
-            --border: #444;
-            --shadow: 0 1px 6px rgba(0,0,0,0.5);
-            --button-bg: #1e88e5;
-            --button-color: white;
-            --secondary-bg: #444;
-            --secondary-color: white;
-            --card-bg: #1e1e1e;
-            --panel-bg: #1d1d1d;
-            --panel-border: #333;
-            --input-bg: #2b2b2b;
-        }
-
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: var(--bg); color: var(--text); max-width: 900px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .user-info { display: flex; flex-direction: column; }
-        .create-box { background: var(--surface); padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: var(--shadow); }
-        .create-box input, .create-box textarea { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; background: var(--input-bg); color: var(--text); }
-        #save-status { font-size: 14px; font-style: italic; font-weight: bold; min-height: 20px; display: block; color: var(--muted); }
-        .btn-new { padding: 8px 15px; background-color: var(--button-bg); color: var(--button-color); border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
-        .search-bar { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; background: var(--input-bg); color: var(--text); }
-        .view-btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; background-color: var(--secondary-bg); color: var(--secondary-color); }
-        .view-btn.active { background-color: var(--button-bg); color: var(--button-color); }
-        
-        .label-panel { background: var(--panel-bg); padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: var(--shadow); }
-        .label-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-        .label-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
-        .label-chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--button-bg); background: var(--surface-alt); color: var(--button-bg); cursor: pointer; }
-        .label-chip.active { background: var(--button-bg); color: var(--button-color); }
-        .label-chip .label-actions { margin-left: 8px; display: inline-flex; gap: 4px; }
-        .label-add-box { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-        .label-add-box input { flex: 1; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); }
-        .label-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .label-checkbox { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-alt); cursor: pointer; color: var(--text); }
-        .label-checkbox input { cursor: pointer; }
-        .note-locked { opacity: 0.7; }
-        .note-locked .note-content { display: none; }
-        .note-locked .note-images-preview { display: none; }
-        .unlock-btn { background-color: #ffc107; color: #212529; }
-        .lock-btn { background-color: #dc3545; color: white; }
-        
-        .note-labels { margin-top: 8px; }
-        .note-label { display: inline-block; padding: 2px 6px; background: #e3f2fd; color: #1976d2; border-radius: 10px; font-size: 12px; margin-right: 4px; }
-        
-        .password-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .password-dialog.show { display: flex; }
-        .password-dialog-content { background: var(--surface); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.12); max-width: 400px; width: 90%; }
-        .password-dialog-content input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); }
-        .password-dialog-content .buttons { display: flex; gap: 10px; justify-content: flex-end; }
-        
-        /* CSS CHO GHI CHÚ */
-        .note-card { background: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 15px; }
-        .note-card h3 { margin-top: 0; color: var(--text); }
-        .note-inner { display: flex; justify-content: space-between; align-items: flex-start; }
-        .note-images-preview { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-        .note-images-preview img { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
-        .existing-images-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-        .existing-image-item { position: relative; display: inline-block; }
-        .existing-image-item img { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
-        .existing-image-item button { position: absolute; top: 6px; right: 6px; padding: 4px 8px; background: rgba(0,0,0,0.65); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .existing-image-item.removed img { opacity: 0.35; filter: grayscale(75%); }
-        
-        .action-btns { display: flex; gap: 5px; }        .action-btns button { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-edit { background-color: #ffc107; color: #212529; }
-        .btn-delete { background-color: #dc3545; color: white; }
-        
-        #notes-container.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        #notes-container.grid-view .note-inner { flex-direction: column; }
-        #notes-container.grid-view .action-btns { margin-top: 15px; width: 100%; justify-content: flex-end; }
-        .logout-btn { padding: 8px 15px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .settings-panel { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 15px 0; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
-        .settings-panel .status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .settings-panel label { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0;}
-        .autosave-label { display: flex !important; align-items: center !important; justify-content: flex-start !important; gap: 6px !important; width: auto !important; white-space: nowrap;}
-        .autosave-label input {margin: 0 !important;}
-        .settings-panel select { padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); }
-        .offline-status { font-weight: bold; }
-        .offline-status.offline { color: #dc3545; }
-        .offline-status.online { color: #2e7d32; }
-        .settings-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        input[type="file"] { margin-bottom: 15px; font-size: 14px; }
-        .unverified-alert { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 14px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .unverified-alert.hidden { display: none; }
-        .unverified-alert button { padding: 8px 12px; background: #856404; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        
-        @media (max-width: 768px) {
-
-    /* ===== FIX MOBILE OVERFLOW ===== */
-
-            html,
-            body {
-
-                overflow-x: hidden !important;
-
-                width: 100%;
-            }
-
-            * {
-
-                box-sizing: border-box;
-
-                max-width: 100%;
-            }
-
-            body {
-
-                padding: 10px;
-            }
-
-            .container {
-
-                width: 100% !important;
-
-                padding: 10px !important;
-            }
-
-            /* ===== HEADER ===== */
-
-            .header {
-
-                display: flex !important;
-
-                flex-direction: column !important;
-
-                align-items: stretch !important;
-
-                gap: 14px;
-
-                margin-bottom: 16px;
-            }
-
-            .user-info h2 {
-
-                margin: 0;
-
-                font-size: 28px;
-
-                line-height: 1.1;
-
-                word-break: break-word;
-            }
-
-            #user-welcome {
-
-                font-size: 15px;
-
-                margin-top: 4px;
-
-                display: block;
-            }
-
-            /* ===== TOP BUTTONS ===== */
-
-            .note-actions {
-
-                display: flex !important;
-
-                flex-wrap: wrap !important;
-
-                justify-content: flex-start !important;
-
-                align-items: center !important;
-
-                gap: 6px !important;
-
-                width: 100%;
-            }
-
-            .note-actions button {
-
-                flex: 0 0 auto !important;
-
-                width: auto !important;
-
-                min-width: auto !important;
-
-                padding: 8px 10px !important;
-
-                font-size: 12px !important;
-
-                white-space: nowrap;
-
-                border-radius: 6px;
-            }
-
-            /* ===== SEARCH ===== */
-
-            .controls {
-
-                display: flex;
-
-                flex-direction: column;
-
-                gap: 10px;
-            }
-
-            .controls input {
-
-                width: 100% !important;
-            }
-
-            /* Hide Grid/List button on mobile */
-
-            .controls .view-btn {
-
-                display: none !important;
-            }
-
-            /* ===== SETTINGS PANEL ===== */
-
-            .settings-panel {
-
-                display: flex !important;
-
-                flex-direction: column !important;
-
-                align-items: flex-start !important;
-
-                gap: 14px !important;
-            }
-
-            /* Status row */
-
-            .status-row {
-
-                display: flex !important;
-
-                flex-wrap: wrap !important;
-
-                align-items: center !important;
-
-                justify-content: flex-start !important;
-
-                gap: 10px !important;
-
-                font-size: 14px;
-            }
-
-            /* Autosave checkbox */
-
-            .status-row label {
-
-                display: flex !important;
-
-                align-items: center !important;
-
-                justify-content: flex-start !important;
-
-                gap: 6px !important;
-
-                width: auto !important;
-
-                margin: 0 !important;
-
-                white-space: nowrap;
-
-                text-align: left !important;
-            }
-
-            .status-row input[type="checkbox"] {
-
-                margin: 0 !important;
-            }
-
-            /* Settings controls */
-
-            .settings-controls {
-
-                display: flex !important;
-
-                flex-direction: column !important;
-
-                align-items: stretch !important;
-
-                gap: 10px !important;
-
-                width: 100%;
-            }
-
-            .settings-controls select,
-            .settings-controls button {
-
-                width: 100% !important;
-            }
-
-            /* ===== FORM ===== */
-
-            input,
-            textarea,
-            select {
-
-                width: 100% !important;
-
-                box-sizing: border-box;
-            }
-
-            button {
-
-                min-height: 40px;
-            }
-
-            /* ===== LABELS ===== */
-
-            .labels-container {
-
-                display: flex;
-
-                flex-wrap: wrap;
-
-                gap: 8px;
-            }
-
-            .label-checkbox {
-
-                margin-bottom: 8px;
-            }
-
-            /* ===== NOTES ===== */
-
-            .notes-grid {
-
-                grid-template-columns: 1fr !important;
-            }
-
-            .note-card,
-            .note-item {
-
-                width: 100% !important;
-
-                display: flex !important;
-
-                flex-direction: column !important;
-
-                overflow: hidden;
-
-                padding: 12px;
-            }
-
-            /* ===== IMAGES ===== */
-
-            .note-image,
-            .note-card img {
-
-                max-width: 100%;
-
-                height: auto;
-
-                border-radius: 8px;
-            }
-
-            /* ===== MODAL ===== */
-
-            .modal-content {
-
-                width: 95% !important;
-
-                max-width: 95% !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/labels.css">
+    <link rel="stylesheet" href="css/notes.css">
+    <link rel="stylesheet" href="css/darkmode.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
 <body>
@@ -403,9 +26,22 @@
             <h2>Danh sách Ghi chú</h2>
             <span id="user-welcome" style="color: #0866ff; font-weight: bold;"></span>
         </div>
-        <div class="note-actions" style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+        <div class="note-actions">
             <button id="theme-toggle-btn" class="view-btn" onclick="toggleTheme()">🌓 Dark Mode</button>
-            <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+            <div class="profile-box" onclick="openProfileModal()">
+                <div
+                    id="profile-avatar"
+                    class="profile-avatar blue"
+                >
+                    K
+                </div>
+
+                <div class="profile-info">
+                    <span id="profile-name">
+                        Người dùng
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
     <div id="unverified-alert" class="unverified-alert hidden">
@@ -422,6 +58,7 @@
         <div class="status-row">
             <span id="offline-status" class="offline-status">Kiểm tra kết nối...</span>
             <span id="auto-save-status">Tự động lưu: Bật</span>
+            <button class="btn-save-now" onclick="saveNoteNow()">Lưu ngay</button>
         </div>
         <div class="settings-controls">
             <label class="autosave-label">
@@ -442,7 +79,6 @@
                     <option value="10000">10 giây</option>
                 </select>
             </label>
-            <button class="view-btn" onclick="saveNoteNow()">Lưu ngay</button>
         </div>
     </div>
 
@@ -452,9 +88,19 @@
             <button class="view-btn" id="clear-label-filter" onclick="clearLabelFilter()" style="display:none;">Xóa lọc</button>
         </div>
         <div id="label-list" class="label-list"></div>
-        <div class="label-add-box">
-            <input type="text" id="new-label-name" placeholder="Tên nhãn mới...">
-            <button class="btn-new" onclick="createLabel()">Thêm nhãn</button>
+        <div class="label-add-box label-input-row">
+            <input
+                type="text"
+                id="new-label-name"
+                placeholder="Tên nhãn mới..."
+            >
+
+            <button
+                class="btn-new"
+                onclick="createLabel()"
+            >
+                Thêm nhãn
+            </button>
         </div>
     </div>
 
@@ -462,11 +108,11 @@
 
     <div class="create-box">
         <h3 id="form-title" style="margin-top: 0;">Đang tạo Ghi chú mới</h3>
-        <input type="text" id="note-title" placeholder="Tiêu đề ghi chú..." oninput="onNoteInput()">
-        <textarea id="note-content" rows="3" placeholder="Nội dung ghi chú..." oninput="onNoteInput()"></textarea>
+        <input type="text" id="note-title" placeholder="Tiêu đề ghi chú..." style="margin-bottom: 16px;">
+        <textarea id="note-content" rows="3" placeholder="Nội dung ghi chú..." style="margin-bottom: 16px;"></textarea>
         
         <label style="font-weight: bold; font-size: 14px;">Đính kèm hình ảnh (nhiều ảnh):</label>
-        <input type="file" id="note-images" accept="image/*" multiple onchange="onNoteInput()">
+        <input type="file" id="note-images" accept="image/*" multiple>
         <div id="existing-images"></div>
 
         <div class="label-select">
@@ -476,7 +122,7 @@
         
         <div><span id="save-status"></span></div>
         <div style="margin-top: 12px;">
-            <button class="view-btn" onclick="saveNoteNow()">Lưu ngay</button>
+            <button id="save-now-button" class="view-btn" onclick="saveNoteNow()">Lưu ngay</button>
         </div>
     </div>
 
@@ -487,7 +133,14 @@
         <div class="password-dialog-content">
             <h3>Mở khóa ghi chú</h3>
             <p>Nhập mật khẩu để xem ghi chú này:</p>
-            <input type="password" id="unlock-password" placeholder="Mật khẩu...">
+            <div class="password-wrapper">
+                <i class="fas fa-lock"></i>
+                <input
+                    type="password"
+                    id="unlock-password"
+                    placeholder="Nhập mật khẩu..."
+                >
+            </div>
             <div class="buttons">
                 <button onclick="closePasswordDialog()">Hủy</button>
                 <button onclick="unlockNote()">Mở khóa</button>
@@ -511,1063 +164,86 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function showToast(message, type = 'success') {
-
-            let bgColor = '#4caf50';
-
-            if (type === 'error') {
-                bgColor = '#f44336';
-            }
-
-            if (type === 'warning') {
-                bgColor = '#ff9800';
-            }
-
-            Toastify({
-                text: message,
-                duration: 3000,
-                gravity: "top",
-                position: "right",
-                close: true,
-                stopOnFocus: true,
-
-                style: {
-                    background: bgColor,
-                    borderRadius: "10px",
-                    padding: "12px 16px",
-                    fontSize: "14px"
-                }
-
-            }).showToast();
-        }
-        // 1. KIỂM TRA ĐĂNG NHẬP
-        const token = localStorage.getItem('token');
-        const displayName = localStorage.getItem('displayName');
-        const apiHost = window.location.origin;
-        if (!token) window.location.href = 'index.html';
-
-        if (displayName) {
-            document.getElementById('user-welcome').innerText = `Chào mừng, ${displayName}!`;
-        }
-
-        // checkVerificationStatus();
-
-        let globalNotes = []; 
-        let globalLabels = [];
-        let currentLabelFilterId = null;
-        let editingNoteId = null; 
-        let editingNoteExistingImages = [];
-        let deletedImageUrls = [];
-        let unlockingNoteId = null;
-        let sharingNoteId = null;
-        let unlockedPasswords = {}; // Lưu mật khẩu đã nhập cho ghi chú đã mở khóa
-        let saveTimeout;
-        let ws = null;
-        let wsReconnectTimeout = null;
-        const saveStatus = document.getElementById('save-status');
-        const preferencesKey = 'noteAppPreferences';
-        const draftKey = 'noteAppDraft';
-        let preferences = {
-            theme: 'light',
-            view: 'list',
-            autoSaveEnabled: true,
-            autoSaveInterval: 1000
-        };
-
-        function loadPreferences() {
-            const stored = localStorage.getItem(preferencesKey);
-            if (stored) {
-                try {
-                    const parsed = JSON.parse(stored);
-                    if (parsed.theme) preferences.theme = parsed.theme;
-                    if (parsed.view) preferences.view = parsed.view;
-                    if (typeof parsed.autoSaveEnabled === 'boolean') preferences.autoSaveEnabled = parsed.autoSaveEnabled;
-                    if (parsed.autoSaveInterval) preferences.autoSaveInterval = Number(parsed.autoSaveInterval) || 1000;
-                } catch (e) {
-                    console.warn('Không thể đọc preferences:', e);
-                }
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                preferences.theme = 'dark';
-            }
-        }
-
-        async function checkVerificationStatus() {
-            try {
-                const response = await fetch(`${apiHost}/api/auth/me`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (!response.ok) {
-                    return;
-                }
-                const data = await response.json();
-                const alertBox = document.getElementById('unverified-alert');
-                if (!data.emailVerified) {
-                    alertBox.classList.remove('hidden');
-                } else {
-                    alertBox.classList.add('hidden');
-                }
-            } catch (error) {
-                console.warn('Không thể kiểm tra trạng thái xác thực:', error);
-            }
-        }
-
-        async function resendVerificationEmail() {
-            try {
-                const response = await fetch(`${apiHost}/api/auth/resend-verification`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                const data = await response.json();
-                showToast(data.message || 'Đã gửi lại email kích hoạt.');
-            } catch (error) {
-                console.warn('Lỗi khi gửi lại email xác thực:', error);
-                showToast('Không thể gửi lại email kích hoạt ngay bây giờ.');
-            }
-        }
-
-        function saveDraftToLocalStorage() {
-            const title = document.getElementById('note-title').value.trim();
-            const content = document.getElementById('note-content').value.trim();
-            const labels = getSelectedLabelIds();
-            const draft = { title, content, labels, noteId: editingNoteId || null };
-            localStorage.setItem(draftKey, JSON.stringify(draft));
-        }
-
-        function loadDraftFromLocalStorage() {
-            const stored = localStorage.getItem(draftKey);
-            if (!stored) return;
-            try {
-                const draft = JSON.parse(stored);
-                if (draft.title) document.getElementById('note-title').value = draft.title;
-                if (draft.content) document.getElementById('note-content').value = draft.content;
-                if (draft.noteId) editingNoteId = draft.noteId;
-                renderLabelCheckboxes(draft.labels || []);
-                if (editingNoteId) {
-                    document.getElementById('form-title').innerText = 'Đang sửa Ghi chú';
-                }
-                saveStatus.innerText = 'Khôi phục bản nháp ngoại tuyến.';
-                saveStatus.style.color = 'green';
-            } catch (err) {
-                console.warn('Không thể khôi phục bản nháp:', err);
-            }
-        }
-
-        function clearDraft() {
-            localStorage.removeItem(draftKey);
-        }
-
-        function savePreferences() {
-            localStorage.setItem(preferencesKey, JSON.stringify(preferences));
-        }
-
-        function updateAutoSaveUI() {
-            const checkbox = document.getElementById('autosave-toggle');
-            const intervalSelect = document.getElementById('autosave-interval');
-            const status = document.getElementById('auto-save-status');
-            checkbox.checked = preferences.autoSaveEnabled;
-            intervalSelect.value = preferences.autoSaveInterval;
-            status.innerText = `Tự động lưu: ${preferences.autoSaveEnabled ? 'Bật' : 'Tắt'} (${preferences.autoSaveInterval / 1000}s)`;
-        }
-
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-            updateThemeButton();
-        }
-
-        function handleAutoSaveToggle() {
-            preferences.autoSaveEnabled = document.getElementById('autosave-toggle').checked;
-            savePreferences();
-            updateAutoSaveUI();
-            if (!preferences.autoSaveEnabled) {
-                clearTimeout(saveTimeout);
-                saveStatus.innerText = 'Tự động lưu đã tắt. Sử dụng nút Lưu ngay.';
-            }
-        }
-
-        function handleAutoSaveIntervalChange() {
-            const value = Number(document.getElementById('autosave-interval').value);
-            if (!value) return;
-            preferences.autoSaveInterval = value;
-            savePreferences();
-            updateAutoSaveUI();
-        }
-
-        function updateThemeButton() {
-            const btn = document.getElementById('theme-toggle-btn');
-            if (!btn) return;
-            btn.textContent = preferences.theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-        }
-
-        function toggleTheme() {
-            preferences.theme = preferences.theme === 'dark' ? 'light' : 'dark';
-            savePreferences();
-            applyTheme(preferences.theme);
-        }
-
-        function applyViewPreference() {
-            toggleView(preferences.view, false);
-        }
-
-        // 2. XỬ LÝ AUTO-SAVE (FormData hỗ trợ cả File)
-        function onNoteInput() {
-            saveDraftToLocalStorage();
-            if (!preferences.autoSaveEnabled) {
-                saveStatus.innerText = "Tự động lưu tắt. Sử dụng nút Lưu ngay.";
-                saveStatus.style.color = "gray";
-                return;
-            }
-
-            saveStatus.innerText = "Đang gõ...";
-            saveStatus.style.color = "gray";
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(autoSaveNote, preferences.autoSaveInterval);
-        }
-
-        async function autoSaveNote() {
-
-            const title =
-                document.getElementById('note-title').value.trim();
-
-            const content =
-                document.getElementById('note-content').value.trim();
-
-            const imageFiles =
-                document.getElementById('note-images').files;
-
-            if (!title && !content && imageFiles.length === 0) {
-                return;
-            }
-
-            saveStatus.innerText = "Đang lưu...";
-            saveStatus.style.color = "black";
-
-            const formData = new FormData();
-
-            formData.append('title', title);
-            formData.append('content', content);
-
-            const selectedLabels = [...document.querySelectorAll('input[name="label_ids"]:checked')]
-                .map(cb => cb.value);
-
-            formData.append('label_ids', JSON.stringify(selectedLabels));
-
-            for (let i = 0; i < imageFiles.length; i++) {
-
-                formData.append(
-                    'images',
-                    imageFiles[i]
-                );
-            }
-
-            try {
-
-                const response = await fetch(
-
-                    editingNoteId
-                        ? `${apiHost}/api/notes/${editingNoteId}`
-                        : `${apiHost}/api/notes`,
-
-                    {
-
-                        method:
-                            editingNoteId
-                                ? 'PUT'
-                                : 'POST',
-
-                        headers: {
-                            'Authorization':
-                                'Bearer ' + token
-                        },
-
-                        body: formData
-                    }
-                );
-
-                if (response.ok) {
-
-                    const data = await response.json();
-
-                    if (!editingNoteId && data.note) {
-                        editingNoteId = data.note.id;
-                    }
-
-                    saveStatus.innerText =
-                        "Đã lưu lúc " +
-                        new Date().toLocaleTimeString();
-
-                    saveStatus.style.color = "green";
-
-                    fetchNotes();
-
-                } else {
-
-                    const text = await response.text();
-
-                    console.error(text);
-
-                    saveStatus.innerText =
-                        "Lỗi server!";
-
-                    saveStatus.style.color = "red";
-                }
-
-            } catch (error) {
-
-                console.error(error);
-
-                saveStatus.innerText =
-                    "Lỗi kết nối!";
-
-                saveStatus.style.color = "red";
-            }
-        }
-
-        // 3. LẤY DANH SÁCH GHI CHÚ
-        async function fetchLabels() {
-            try {
-                const response = await fetch(`${apiHost}/api/notes/labels`, {
-                    method: 'GET',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (response.ok) {
-                    globalLabels = await response.json();
-                    renderLabelList();
-                    renderLabelCheckboxes();
-                    loadDraftFromLocalStorage();
-                }
-            } catch (error) {
-                console.error('Lỗi khi tải nhãn:', error);
-            }
-        }
-
-        async function fetchNotes() {
-            const container = document.getElementById('notes-container');
-            try {
-                const response = await fetch(`${apiHost}/api/notes`, {
-                    method: 'GET',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (response.ok) {
-                    globalNotes = await response.json(); 
-                    onSearchInput(); 
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    container.innerHTML = `<p style="color:red;">Lỗi tải ghi chú: ${errorData.message || 'Server trả về lỗi.'}</p>`;
-                }
-            } catch (error) {
-                console.error('Lỗi khi tải ghi chú:', error);
-                container.innerHTML = '<p style="color:red;">Không thể tải ghi chú. Kiểm tra kết nối backend.</p>';
-            }
-        }
-
-        function setupWebSocket() {
-            if (navigator.onLine === false) {
-                console.warn('Ngoại tuyến, sẽ không kết nối WebSocket');
-                return;
-            }
-            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
-                return;
-            }
-
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const host = window.location.hostname || 'localhost';
-            const wsUrl = `${protocol}://${host}:8080/ws?token=${encodeURIComponent(token)}`;
-
-            ws = new WebSocket(wsUrl);
-
-            ws.addEventListener('open', () => {
-                console.log('WebSocket realtime đã kết nối.');
-            });
-
-            ws.addEventListener('message', (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'note-changed' || data.type === 'note-shared') {
-                        console.log('Realtime event:', data);
-                        if (data.noteId && editingNoteId === data.noteId && data.action === 'deleted') {
-                            resetForm();
-                        }
-                        fetchNotes();
-                    }
-                } catch (err) {
-                    console.error('Lỗi xử lý sự kiện WebSocket:', err);
-                }
-            });
-
-            ws.addEventListener('close', () => {
-                console.warn('WebSocket realtime đã ngắt kết nối, thử lại sau 3s...');
-                if (!wsReconnectTimeout) {
-                    wsReconnectTimeout = setTimeout(() => {
-                        wsReconnectTimeout = null;
-                        setupWebSocket();
-                    }, 3000);
-                }
-            });
-
-            ws.addEventListener('error', (error) => {
-                console.error('Lỗi WebSocket:', error);
-            });
-        }
-
-        function getSelectedLabelIds() {
-            return Array.from(document.querySelectorAll('.label-checkbox input:checked')).map(cb => parseInt(cb.value, 10)).filter(id => id > 0);
-        }
-
-        async function createLabel() {
-            const name = document.getElementById('new-label-name').value.trim();
-            if (!name) return showToast('Vui lòng nhập tên nhãn.');
-
-            const duplicate = globalLabels.some(label => label.name.toLowerCase() === name.toLowerCase());
-            if (duplicate) {
-                return showToast('Nhãn này đã tồn tại. Vui lòng dùng tên khác.');
-            }
-
-            try {
-                const response = await fetch(`${apiHost}/api/notes/labels`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ name })
-                });
-                if (response.ok) {
-                    document.getElementById('new-label-name').value = '';
-                    await fetchLabels();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Tạo nhãn thất bại.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi tạo nhãn.');
-            }
-        }
-
-        function renderLabelList() {
-            const labelList = document.getElementById('label-list');
-            const clearButton = document.getElementById('clear-label-filter');
-            labelList.innerHTML = globalLabels.length ? '' : '<span style="color:#777;">Chưa có nhãn nào.</span>';
-            clearButton.style.display = currentLabelFilterId ? 'inline-block' : 'none';
-
-            globalLabels.forEach(label => {
-                const activeClass = currentLabelFilterId === label.id ? 'active' : '';
-                const chip = document.createElement('div');
-                chip.className = `label-chip ${activeClass}`;
-                chip.onclick = () => applyLabelFilter(label.id);
-                chip.title = 'Nhấp để lọc theo nhãn';
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = label.name;
-                nameSpan.style.flex = '1';
-                chip.appendChild(nameSpan);
-
-                const actions = document.createElement('span');
-                actions.className = 'label-actions';
-
-                const renameBtn = document.createElement('button');
-                renameBtn.type = 'button';
-                renameBtn.textContent = '✏️';
-                renameBtn.title = 'Đổi tên nhãn';
-                renameBtn.onclick = (event) => { event.stopPropagation(); promptRenameLabel(label.id, label.name); };
-                actions.appendChild(renameBtn);
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.type = 'button';
-                deleteBtn.textContent = '🗑️';
-                deleteBtn.title = 'Xóa nhãn';
-                deleteBtn.onclick = (event) => { event.stopPropagation(); deleteLabel(label.id); };
-                actions.appendChild(deleteBtn);
-
-                chip.appendChild(actions);
-                labelList.appendChild(chip);
-            });
-        }
-
-        function renderLabelCheckboxes(selectedIds = []) {
-            const container = document.getElementById('label-checkboxes');
-            container.innerHTML = globalLabels.length ? '' : '<span style="color:#777;">Chưa có nhãn. Thêm nhãn để gắn vào ghi chú.</span>';
-
-            globalLabels.forEach(label => {
-                const wrapper = document.createElement('label');
-                wrapper.className = 'label-checkbox';
-                wrapper.innerHTML = `
-                    <input
-                        type="checkbox"
-                        name="label_ids"
-                        class="label-checkbox-input"
-                        value="${label.id}"
-                        ${selectedIds.includes(label.id) ? 'checked' : ''}
-                    >
-                    <span>${label.name}</span>
-                `;
-                wrapper.querySelector('input').addEventListener('change', () => {
-                    saveStatus.innerText = '';
-                });
-                container.appendChild(wrapper);
-            });
-        }
-
-        function applyLabelFilter(labelId) {
-            if (currentLabelFilterId === labelId) {
-                currentLabelFilterId = null;
-            } else {
-                currentLabelFilterId = labelId;
-            }
-            renderLabelList();
-            onSearchInput();
-        }
-
-        function clearLabelFilter() {
-            currentLabelFilterId = null;
-            renderLabelList();
-            onSearchInput();
-        }
-
-        async function promptRenameLabel(id, currentName) {
-            const newName = prompt('Đổi tên nhãn:', currentName);
-            if (!newName || !newName.trim() || newName.trim() === currentName) return;
-            try {
-                const response = await fetch(`${apiHost}/api/notes/labels/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ name: newName.trim() })
-                });
-                if (response.ok) {
-                    await fetchLabels();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Cập nhật nhãn thất bại.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi cập nhật nhãn.');
-            }
-        }
-
-        async function deleteLabel(id) {
-            const result = await Swal.fire({
-                title: 'Xóa nhãn?',
-                text: 'Bạn có chắc chắn muốn xóa nhãn này?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy',
-                confirmButtonColor: '#e53935'
-            });
-
-if (!result.isConfirmed) return;
-            try {
-                const response = await fetch(`${apiHost}/api/notes/labels/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (response.ok) {
-                    await fetchLabels();
-                    await fetchNotes();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Xóa nhãn thất bại.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi xóa nhãn.');
-            }
-        }
-
-        // 4. HIỂN THỊ
-        function onSearchInput() {
-            try {
-                const keyword = document.getElementById('search-input').value.toLowerCase();
-                let filtered = Array.isArray(globalNotes) ? globalNotes : [];
-                filtered = filtered.filter(n => 
-                    (n.title && n.title.toLowerCase().includes(keyword)) || 
-                    (n.content && n.content.toLowerCase().includes(keyword))
-                );
-                if (currentLabelFilterId) {
-                    filtered = filtered.filter(n => n.labels && n.labels.some(label => label.id === currentLabelFilterId));
-                }
-                renderFilteredNotes();
-            } catch (error) {
-                console.error('Lỗi khi lọc ghi chú:', error);
-                document.getElementById('notes-container').innerHTML = '<p style="color:red;">Lỗi hiển thị ghi chú. Vui lòng tải lại trang.</p>';
-            }
-        }
-
-        function displayNotes(notes) {
-            const container = document.getElementById('notes-container');
-            
-            // Sắp xếp: notes pinned lên đầu
-            const sorted = notes.sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0));
-            
-            container.innerHTML = sorted.length ? '' : '<p>Không có ghi chú nào.</p>';
-
-            sorted.forEach(note => {
-                const div = document.createElement('div');
-                div.className = 'note-card';
-                const isUnlocked = unlockedPasswords[note.id];
-                if (note.note_password && !isUnlocked) {
-                    div.classList.add('note-locked');
-                }
-                
-                // Xử lý hiển thị danh sách ảnh nếu có (Giả sử server trả về note.images là mảng path)
-                let imagesHTML = '';
-                if (note.images && note.images.length > 0) {
-                    imagesHTML = `<div class="note-images-preview">`;
-                    note.images.forEach(imgUrl => {
-                        imagesHTML += `<img src="${apiHost}${imgUrl}" alt="note-img">`;
-                    });
-                    imagesHTML += `</div>`;
-                }
-
-                const pinIcon = note.is_pinned ? '📌' : '📍';
-                const labelsHTML = '';
-                const sharedInfo = note.access_level !== 'owner' ? `<div style="color: #666; font-size: 12px;">Được chia sẻ bởi ${note.shared_by_name} (${note.access_level === 'edit' ? 'Có thể sửa' : 'Chỉ đọc'})</div>` : '';
-
-                div.innerHTML = `
-                    <div class="note-inner" style="
-                        display:flex;
-                        flex-direction:column;
-                        gap:10px;
-                    ">
-                        <div style="flex: 1;">
-                            <div style="
-                                display:flex;
-                                align-items:center;
-                                gap:8px;
-                                flex-wrap:wrap;
-                            ">
-
-                                <h3 style="margin:0;">
-                                    ${note.title}
-                                </h3>
-
-                                ${note.labels && note.labels.length > 0
-                                    ? note.labels.map(label => `
-                                    
-                                        <span
-                                            onclick="filterByLabel(${label.id})"
-                                            style="
-                                                background:${currentLabelFilterId === label.id ? '#1565c0' : '#e3f2fd'};
-                                                color:${currentLabelFilterId === label.id ? 'white' : '#1565c0'};
-                                                padding:3px 10px;
-                                                border-radius:20px;
-                                                font-size:12px;
-                                                font-weight:500;
-                                                cursor:pointer;
-                                                transition:0.2s;
-                                            "
-                                        >
-                                            #${label.name}
-                                        </span>
-
-                                    `).join('')
-                                    : ''
-                                }
-                                ${note.is_pinned ? '<span title="Đã ghim">📌</span>' : ''}
-                                ${note.note_password ? '<span title="Đã khóa">🔒</span>' : ''}
-                            </div>
-                            <div class="note-content">${note.content || ''}</div>
-                            ${labelsHTML}
-                            ${imagesHTML}
-                            ${sharedInfo}
-                            ${note.last_edited_by ? `
-                            <div style="
-                                color:#777;
-                                font-size:12px;
-                                margin-top:4px;
-                            ">
-                                ✏️ Đã sửa bởi ${note.last_edited_by}
-                                ${note.last_edited_at
-                                    ? ' lúc ' + new Date(note.last_edited_at).toLocaleString()
-                                    : ''
-                                }
-                            </div>
-                            ` : ''}
-                            <small style="color:gray">${new Date(note.updated_at || note.created_at).toLocaleString()}</small>
-                        </div>
-                        <div class="action-btns">
-                            <button class="btn-edit" onclick="handlePin(${note.id})" title="${note.is_pinned ? 'Bỏ ghim' : 'Ghim lên trên'}">${pinIcon}</button>
-                            ${note.note_password && !unlockedPasswords[note.id] ? `<button class="unlock-btn" onclick="showPasswordDialog(${note.id})">🔓 Mở khóa</button>` : `<button class="lock-btn" onclick="lockNote(${note.id})">🔒 Khóa</button>`}
-                            <button class="btn-edit" onclick="showShareDialog(${note.id})" title="Chia sẻ ghi chú">📤 Chia sẻ</button>
-                            <button class="btn-edit" onclick="prepareEdit(${note.id})">Sửa</button>
-                            <button class="btn-delete" onclick="deleteNote(${note.id})">Xóa</button>
-                        </div>
-                    </div>`;
-                container.appendChild(div);
-            });
-        }
-
-        async function handlePin(id) {
-            try {
-                const response = await fetch(`${apiHost}/api/notes/${id}/pin`, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (response.ok) {
-                    fetchNotes(); // Tải lại danh sách để thấy sự thay đổi vị trí
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Ghim không thành công.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi ghim ghi chú.');
-            }
-        }
-
-        function prepareEdit(id) {
-            const note = globalNotes.find(n => n.id === id);
-            if (!note) return;
-            
-            // Kiểm tra quyền truy cập
-            if (note.access_level === 'read') {
-                showToast('Bạn chỉ có quyền đọc ghi chú này.');
-                return;
-            }
-            
-            if (note.note_password && !unlockedPasswords[id]) {
-                showPasswordDialog(id);
-                return;
-            }
-            
-            document.getElementById('note-title').value = note.title;
-            document.getElementById('note-content').value = note.content;
-            document.getElementById('note-images').value = ""; // Reset input file khi sửa
-            document.getElementById('form-title').innerText = "Đang sửa Ghi chú";
-            editingNoteId = id;
-            editingNoteExistingImages = note.images ? [...note.images] : [];
-            deletedImageUrls = [];
-            renderExistingImages(editingNoteExistingImages);
-            renderLabelCheckboxes(note.labels ? note.labels.map(label => label.id) : []);
-            saveStatus.innerText = "";
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetForm() {
-            document.getElementById('note-title').value = '';
-            document.getElementById('note-content').value = '';
-            document.getElementById('note-images').value = '';
-            document.getElementById('form-title').innerText = "Đang tạo Ghi chú mới";
-            editingNoteId = null;
-            editingNoteExistingImages = [];
-            deletedImageUrls = [];
-            document.getElementById('existing-images').innerHTML = '';
-            saveStatus.innerText = "";
-            renderLabelCheckboxes();
-            clearDraft();
-            // Xóa mật khẩu đã lưu khi reset form
-            unlockedPasswords = {};
-        }
-
-        function renderExistingImages(images) {
-            const container = document.getElementById('existing-images');
-            if (!images || images.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-
-            let html = '<div style="margin-top: 12px; font-weight: bold;">Ảnh hiện có:</div>';
-            html += '<div class="existing-images-preview">';
-            images.forEach(imgUrl => {
-                const removed = deletedImageUrls.includes(imgUrl);
-                html += `
-                    <div class="existing-image-item${removed ? ' removed' : ''}">
-                        <img src="${apiHost}${imgUrl}" alt="img">
-                        <button type="button" onclick="toggleDeleteExistingImage('${encodeURIComponent(imgUrl)}')">${removed ? 'Hoàn tác' : 'Xóa'}</button>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-        function toggleDeleteExistingImage(encodedUrl) {
-            const imgUrl = decodeURIComponent(encodedUrl);
-            const index = deletedImageUrls.indexOf(imgUrl);
-            if (index >= 0) {
-                deletedImageUrls.splice(index, 1);
-            } else {
-                deletedImageUrls.push(imgUrl);
-            }
-            renderExistingImages(editingNoteExistingImages);
-        }
-
-        async function deleteNote(id) {
-            const note = globalNotes.find(n => n.id === id);
-            if (!note) return;
-            
-            // Kiểm tra quyền truy cập
-            if (note.access_level !== 'owner') {
-                showToast('Bạn không có quyền xóa ghi chú này.');
-                return;
-            }
-            
-            const result = await Swal.fire({
-                title: 'Xóa ghi chú?',
-                text: 'Bạn có chắc chắn muốn xóa ghi chú này?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy',
-                confirmButtonColor: '#e53935'
-            });
-
-if (!result.isConfirmed) return;
-            await fetch(`${apiHost}/api/notes/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (editingNoteId === id) resetForm();
-            fetchNotes();
-        }
-
-        function toggleView(type, savePref = true) {
-            const container = document.getElementById('notes-container');
-            if (type === 'grid') {
-                container.classList.add('grid-view');
-                document.getElementById('btn-grid').classList.add('active');
-                document.getElementById('btn-list').classList.remove('active');
-            } else {
-                container.classList.remove('grid-view');
-                document.getElementById('btn-list').classList.add('active');
-                document.getElementById('btn-grid').classList.remove('active');
-            }
-            if (savePref) {
-                preferences.view = type;
-                savePreferences();
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-
-        async function lockNote(id) {
-            const note = globalNotes.find(n => n.id === id);
-            if (!note) return;
-            
-            // Kiểm tra quyền truy cập
-            if (note.access_level !== 'owner') {
-                showToast('Bạn không có quyền khóa ghi chú này.');
-                return;
-            }
-            
-            const password = prompt('Nhập mật khẩu để khóa ghi chú này:');
-            if (!password || !password.trim()) return showToast('Mật khẩu không được để trống.');
-
-            try {
-                const response = await fetch(`${apiHost}/api/notes/${id}/lock`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ password: password.trim() })
-                });
-                if (response.ok) {
-                    fetchNotes();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Khóa ghi chú thất bại.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi khóa ghi chú.');
-            }
-        }
-
-        function showPasswordDialog(id) {
-            unlockingNoteId = id;
-            document.getElementById('unlock-password').value = '';
-            document.getElementById('password-dialog').classList.add('show');
-        }
-
-        function closePasswordDialog() {
-            unlockingNoteId = null;
-            document.getElementById('password-dialog').classList.remove('show');
-        }
-
-        async function unlockNote() {
-            const password = document.getElementById('unlock-password').value.trim();
-            if (!password) return showToast('Vui lòng nhập mật khẩu.');
-
-            try {
-                const response = await fetch(`${apiHost}/api/notes/${unlockingNoteId}/unlock`, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (response.ok) {
-                    unlockedPasswords[unlockingNoteId] = password; // Lưu mật khẩu đã nhập
-                    closePasswordDialog();
-                    fetchNotes();
-                    // Nếu đang mở khóa để sửa, chuyển sang chế độ sửa
-                    const note = globalNotes.find(n => n.id === unlockingNoteId);
-                    if (note) {
-                        document.getElementById('note-title').value = note.title;
-                        document.getElementById('note-content').value = note.content;
-                        document.getElementById('note-images').value = "";
-                        document.getElementById('form-title').innerText = "Đang sửa Ghi chú";
-                        editingNoteId = unlockingNoteId;
-                        renderLabelCheckboxes(note.labels ? note.labels.map(label => label.id) : []);
-                        saveStatus.innerText = "";
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Mật khẩu không đúng.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi mở khóa ghi chú.');
-            }
-        }
-
-        function showShareDialog(id) {
-            const note = globalNotes.find(n => n.id === id);
-            if (!note) return;
-            
-            // Kiểm tra quyền truy cập
-            if (note.access_level !== 'owner') {
-                showToast('Bạn không có quyền chia sẻ ghi chú này.');
-                return;
-            }
-            
-            sharingNoteId = id;
-            document.getElementById('share-email').value = '';
-            document.getElementById('share-permission').value = 'read';
-            document.getElementById('share-dialog').classList.add('show');
-        }
-
-        function closeShareDialog() {
-            sharingNoteId = null;
-            document.getElementById('share-dialog').classList.remove('show');
-        }
-
-        async function shareNote() {
-            const email = document.getElementById('share-email').value.trim();
-            const permission = document.getElementById('share-permission').value;
-
-            if (!email) return showToast('Vui lòng nhập email.');
-            if (!permission || !['read', 'edit'].includes(permission)) return showToast('Vui lòng chọn quyền chia sẻ hợp lệ.');
-
-            try {
-                const response = await fetch(`${apiHost}/api/notes/${sharingNoteId}/share`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ email, permission })
-                });
-                if (response.ok) {
-                    showToast('Chia sẻ ghi chú thành công!');
-                    closeShareDialog();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    showToast(errorData.message || 'Chia sẻ ghi chú thất bại.');
-                }
-            } catch (error) {
-                showToast('Lỗi kết nối khi chia sẻ ghi chú.');
-            }
-        }
-
-        function saveNoteNow() {
-            if (!preferences.autoSaveEnabled) {
-                saveStatus.innerText = 'Lưu bằng tay...';
-                saveStatus.style.color = 'gray';
-            }
-            clearTimeout(saveTimeout);
-            autoSaveNote();
-        }
-
-        function updateOnlineStatus() {
-            const status = document.getElementById('offline-status');
-            const online = navigator.onLine;
-            if (!status) return;
-            status.innerText = online ? 'Trực tuyến' : 'Ngoại tuyến';
-            status.classList.toggle('offline', !online);
-            status.classList.toggle('online', online);
-            if (online) {
-                if (!ws || ws.readyState !== WebSocket.OPEN) {
-                    setupWebSocket();
-                }
-            }
-        }
-
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker đã đăng ký:', reg.scope))
-                    .catch(err => console.warn('Không thể đăng ký Service Worker:', err));
-            }
-        }
-
-        // Tự động tải danh sách ghi chú và nhãn khi mở trang
-        window.addEventListener('load', () => {
-            loadPreferences();
-            applyTheme(preferences.theme);
-            updateAutoSaveUI();
-            applyViewPreference();
-            updateOnlineStatus();
-            fetchLabels();
-            fetchNotes();
-            setupWebSocket();
-            registerServiceWorker();
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
-        });
-    function filterByLabel(labelId) {
-
-        if (currentLabelFilterId === labelId) {
-
-            currentLabelFilterId = null;
-
-        } else {
-
-            currentLabelFilterId = labelId;
-        }
-
-        renderFilteredNotes();
-    }
-
-    function renderFilteredNotes() {
-
-        let filtered = [...globalNotes];
-
-        // Search
-        const keyword = document
-            .getElementById('search-input')
-            ?.value
-            ?.trim()
-            ?.toLowerCase() || '';
-
-        if (keyword) {
-
-            filtered = filtered.filter(note =>
-
-                (note.title || '')
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (note.content || '')
-                    .toLowerCase()
-                    .includes(keyword)
-            );
-        }
-
-        // Label filter
-        if (currentLabelFilterId) {
-
-            filtered = filtered.filter(note =>
-
-                note.labels &&
-
-                note.labels.some(label =>
-                    label.id === currentLabelFilterId
-                )
-            );
-        }
-
-        displayNotes(filtered);
-    }
-    </script>
+    <div
+        id="profile-modal"
+        class="modal-overlay"
+    >
+        <div class="modal-content profile-modal">
+            <h3>Thông tin cá nhân</h3>
+            <div class="profile-avatar-preview">
+                <div
+                    id="profile-avatar-preview"
+                    class="profile-avatar large blue"
+                >
+                    K
+                </div>
+            </div>
+            <label>Tên hiển thị</label>
+            <input
+                type="text"
+                id="profile-display-name"
+                placeholder="Tên hiển thị..."
+            >
+            <label>Màu avatar</label>
+            <div class="avatar-colors">
+                <button class="avatar-color blue" onclick="selectAvatarColor('blue')"></button>
+                <button class="avatar-color red" onclick="selectAvatarColor('red')"></button>
+                <button class="avatar-color green" onclick="selectAvatarColor('green')"></button>
+                <button class="avatar-color purple" onclick="selectAvatarColor('purple')"></button>
+                <button class="avatar-color orange" onclick="selectAvatarColor('orange')"></button>
+            </div>
+            <div class="profile-actions">
+                <button class="change-password-btn" onclick="openChangePasswordModal()">
+                    🔒 Đổi mật khẩu
+                </button>
+                <button class="logout-btn" onclick="logout()">
+                    Đăng xuất
+                </button>
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeProfileModal()">
+                    Đóng
+                </button>
+                <button onclick="saveProfile()">
+                    Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="changePasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Đổi mật khẩu</h2>
+            <input
+                type="password"
+                id="oldPassword"
+                placeholder="Mật khẩu cũ"
+            >
+            <input
+                type="password"
+                id="newPassword"
+                placeholder="Mật khẩu mới"
+            >
+            <input
+                type="password"
+                id="confirmPassword"
+                placeholder="Xác nhận mật khẩu mới"
+            >
+            <div class="modal-actions">
+                <button onclick="closeChangePasswordModal()">
+                    Hủy
+                </button>
+                <button onclick="changePassword()">
+                    Đổi mật khẩu
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="js/config.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/labels.js"></script>
+    <script src="js/notes.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

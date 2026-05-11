@@ -155,6 +155,18 @@ router.post(
 );
 
 router.delete(
+    '/:id/unshare',
+    verifyToken,
+    noteController.unshareNote
+);
+
+router.post(
+    '/:id/verify-password',
+    verifyToken,
+    noteController.verifyPassword
+);
+
+router.delete(
     '/:id',
     verifyToken,
     noteController.deleteNote

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const { sql, poolPromise } = require('../config/db');
 const { broadcastNoteEvent } = require('../wsServer');
 
@@ -31,6 +32,7 @@ const getNotes = async (req, res) => {
                 delete note.image_url;
                 delete note.label_id;
                 delete note.label_name;
+                note.note_password = !!note.note_password;
                 // Nếu có mật khẩu và không phải chủ sở hữu, ẩn nội dung và ảnh
                 if (note.note_password && note.access_level !== 'owner') {
                     note.content = '[Đã khóa]';
@@ -119,7 +121,7 @@ const updateNote = async (req, res) => {
             const shareCheck = await pool.request()
                 .input('note_id', sql.Int, noteId)
                 .input('email', sql.NVarChar, req.user.email)
-                .query('SELECT permission FROM Shares WHERE note_id = @note_id AND shared_with_email = @email');
+                .query('SELECT permission FROM Shares WHERE note_id = @note_id AND LOWER(shared_with_email) = LOWER(@email)');
 
             if (shareCheck.recordset.length && shareCheck.recordset[0].permission === 'edit') {
                 hasPermission = true;
@@ -130,14 +132,13 @@ const updateNote = async (req, res) => {
             return res.status(403).json({ message: 'Bạn không có quyền chỉnh sửa ghi chú này.' });
         }
 
-        // Kiểm tra mật khẩu nếu ghi chú bị khóa (chỉ áp dụng cho chủ sở hữu)
-        if (isOwner) {
-            const check = await pool.request()
-                .input('id', sql.Int, noteId)
-                .query('SELECT note_password FROM Notes WHERE id = @id');
+        const check = await pool.request()
+            .input('id', sql.Int, noteId)
+            .query('SELECT note_password FROM Notes WHERE id = @id');
 
-            const notePassword = check.recordset[0].note_password;
-            if (notePassword && notePassword !== unlock_password) {
+        const notePasswordHash = check.recordset[0]?.note_password;
+        if (notePasswordHash) {
+            if (!unlock_password || !(await bcrypt.compare(unlock_password, notePasswordHash))) {
                 return res.status(403).json({ message: 'Mật khẩu ghi chú không đúng.' });
             }
         }
@@ -434,15 +435,17 @@ const setNotePassword = async (req, res) => {
     try {
         const { password } = req.body;
         const noteId = req.params.id;
-        if (!password || !password.trim()) {
+        const passwordValue = password ? password.trim() : '';
+        if (!passwordValue) {
             return res.status(400).json({ message: 'Mật khẩu không được để trống.' });
         }
 
+        const hashedPassword = await bcrypt.hash(passwordValue, 10);
         const pool = await poolPromise;
         await pool.request()
             .input('id', sql.Int, noteId)
             .input('user_id', sql.Int, req.user.id)
-            .input('password', sql.NVarChar, password.trim())
+            .input('password', sql.NVarChar, hashedPassword)
             .query('UPDATE Notes SET note_password = @password WHERE id = @id AND user_id = @user_id');
 
         broadcastNoteEvent({ type: 'note-changed', noteId: parseInt(noteId, 10), action: 'locked' });
@@ -455,8 +458,29 @@ const setNotePassword = async (req, res) => {
 
 const removeNotePassword = async (req, res) => {
     try {
+        const { password } = req.body;
         const noteId = req.params.id;
+        const passwordValue = password ? password.trim() : '';
+        if (!passwordValue) {
+            return res.status(400).json({ message: 'Mật khẩu mở khóa không được để trống.' });
+        }
+
         const pool = await poolPromise;
+        const check = await pool.request()
+            .input('id', sql.Int, noteId)
+            .input('user_id', sql.Int, req.user.id)
+            .query('SELECT note_password FROM Notes WHERE id = @id AND user_id = @user_id');
+
+        if (!check.recordset.length || !check.recordset[0].note_password) {
+            return res.status(404).json({ message: 'Ghi chú không tồn tại hoặc không bị khóa.' });
+        }
+
+        const notePasswordHash = check.recordset[0].note_password;
+        const isMatch = await bcrypt.compare(passwordValue, notePasswordHash);
+        if (!isMatch) {
+            return res.status(403).json({ message: 'Mật khẩu mở khóa không đúng.' });
+        }
+
         await pool.request()
             .input('id', sql.Int, noteId)
             .input('user_id', sql.Int, req.user.id)
@@ -520,6 +544,27 @@ const shareNote = async (req, res) => {
     }
 };
 
+const unshareNote = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('note_id', sql.Int, id)
+            .input('email', sql.NVarChar, req.user.email)
+            .query('DELETE FROM Shares WHERE note_id = @note_id AND LOWER(shared_with_email) = LOWER(@email)');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: 'Ghi chú chia sẻ không tìm thấy hoặc không thuộc về bạn.' });
+        }
+
+        broadcastNoteEvent({ type: 'note-changed', noteId: parseInt(id, 10), action: 'unshared' });
+        res.status(200).json({ message: 'Đã xóa khỏi danh sách chia sẻ của bạn.' });
+    } catch (error) {
+        console.error('Lỗi xóa khỏi danh sách chia sẻ:', error);
+        res.status(500).json({ message: 'Lỗi server!' });
+    }
+};
+
 const getSharedNotes = async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -545,6 +590,7 @@ const getSharedNotes = async (req, res) => {
                 delete note.image_url;
                 delete note.label_id;
                 delete note.label_name;
+                note.note_password = !!note.note_password;
                 // Nếu có mật khẩu, ẩn nội dung và ảnh
                 if (note.note_password) {
                     note.content = '[Đã khóa]';
@@ -568,4 +614,44 @@ const getSharedNotes = async (req, res) => {
     }
 };
 
-module.exports = { getNotes, createNote, updateNote, deleteNote, togglePin, getLabels, createLabel, updateLabel, deleteLabel, setNotePassword, removeNotePassword, shareNote, getSharedNotes };
+// Xác thực mật khẩu ghi chú
+const verifyPassword = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'Vui lòng nhập mật khẩu!' });
+        }
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('note_id', sql.Int, id)
+            .input('user_id', sql.Int, req.user.id)
+            .query(`
+                SELECT note_password FROM Notes
+                WHERE id = @note_id AND user_id = @user_id
+            `);
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Ghi chú không tồn tại!' });
+        }
+
+        const note = result.recordset[0];
+        if (!note.note_password) {
+            return res.status(400).json({ message: 'Ghi chú không có mật khẩu!' });
+        }
+
+        const isValid = await bcrypt.compare(password, note.note_password);
+        if (!isValid) {
+            return res.status(401).json({ message: 'Mật khẩu không đúng!' });
+        }
+
+        res.status(200).json({ message: 'Mật khẩu đúng!' });
+    } catch (error) {
+        console.error('Lỗi xác thực mật khẩu:', error);
+        res.status(500).json({ message: 'Lỗi server!' });
+    }
+};
+
+module.exports = { getNotes, createNote, updateNote, deleteNote, togglePin, getLabels, createLabel, updateLabel, deleteLabel, setNotePassword, removeNotePassword, shareNote, unshareNote, getSharedNotes, verifyPassword };

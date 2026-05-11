@@ -1,0 +1,91 @@
+.dark-mode {
+    background:
+        radial-gradient(
+            circle at top,
+            #0f172a 0%,
+            #020617 65%
+        );
+    color: #f8fafc;
+}
+.dark-mode .note-card,
+.dark-mode .settings-panel,
+.dark-mode .label-panel,
+.dark-mode .create-box {
+    background:
+        linear-gradient(
+            180deg,
+            #0f172a,
+            #091225
+        );
+    border: 1px solid rgba(59,130,246,0.12);
+    box-shadow:
+        0 12px 35px rgba(0,0,0,0.45);
+}
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+    background: #182235;
+    color: #f8fafc;
+    border: 1px solid #334155;
+}
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+    color: #94a3b8;
+}
+.dark-mode .note-card-meta,
+.dark-mode .note-time {
+    color: #94a3b8;
+}
+.dark-mode .view-btn {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid rgba(59,130,246,0.25);
+}
+.dark-mode .view-btn.active {
+    background: #2563eb;
+    color: white;
+}
+.dark-mode .label-chip,
+.dark-mode .checkbox-pill {
+    background: rgba(37,99,235,0.06);
+    border: 2px solid #3b82f6;
+    color: white;
+}
+.dark-mode .label-chip:hover,
+.dark-mode .checkbox-pill:hover {
+    background: rgba(37,99,235,0.14);
+    box-shadow:
+        0 10px 24px rgba(37,99,235,0.22);
+}
+.dark-mode .label-chip.active,
+.dark-mode .checkbox-pill:has(input:checked) {
+    background: #2563eb;
+    color: white;
+    box-shadow:
+        0 0 0 1px rgba(37,99,235,0.25),
+        0 10px 24px rgba(37,99,235,0.35);
+}
+.dark-mode .note-label,
+.dark-mode .note-label-button {
+    background: rgba(37,99,235,0.08);
+    border: 1px solid #3b82f6;
+    color: #93c5fd;
+}
+.dark-mode .note-label.active,
+.dark-mode .note-label-button.active {
+    background: #2563eb;
+    color: white;
+}
+.dark-mode .pinned-note {
+    border-left: 5px solid #f59e0b !important;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(245,158,11,0.16) 0%,
+            rgba(245,158,11,0.06) 14%,
+            rgba(15,23,42,1) 32%
+        ) !important;
+    box-shadow:
+        0 0 0 1px rgba(245,158,11,0.12),
+        0 14px 40px rgba(0,0,0,0.45);
+}

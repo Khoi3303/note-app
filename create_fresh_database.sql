@@ -13,6 +13,7 @@ CREATE TABLE Users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     display_name NVARCHAR(255) NOT NULL,
+    avatar_color NVARCHAR(50) DEFAULT 'blue',
     email_verified BIT DEFAULT 0,
     verification_token VARCHAR(255),
     reset_token VARCHAR(255),
@@ -86,3 +87,5 @@ CREATE TABLE Shares (
 );
 CREATE INDEX IDX_Shares_NoteId ON Shares(note_id);
 CREATE INDEX IDX_Shares_SharedWithEmail ON Shares(shared_with_email);
+
+SELECT * FROM Users

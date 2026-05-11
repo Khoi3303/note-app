@@ -1,50 +1,61 @@
-const CACHE_NAME = 'note-app-cache-v1';
-const CACHE_URLS = [
-  './',
-  './index.html',
-  './home.html',
-  './manifest.json',
-  './offline.html',
-  './icon-192.svg',
-  './icon-512.svg'
+const CACHE_NAME = 'notes-app-v1';
+
+const urlsToCache = [
+    '/',
+    '/home.html',
+    '/css/base.css',
+    '/css/layout.css',
+    '/css/notes.css',
+    '/css/labels.css',
+    '/css/darkmode.css',
+    '/css/mobile.css',
+    '/js/config.js',
+    '/js/app.js',
+    '/js/ui.js',
+    '/js/notes.js',
+    '/js/labels.js',
+    '/js/toast.js'
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(CACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+
+    event.waitUntil(
+
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                return cache.addAll(urlsToCache);
+            })
+    );
+
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames =>
-      Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      )
-    ).then(() => self.clients.claim())
-  );
+
+    event.waitUntil(
+
+        caches.keys().then(keys => {
+
+            return Promise.all(
+
+                keys.map(key => {
+
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+
+    self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
 
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
+    event.respondWith(
 
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-        return response;
-      })
-      .catch(() => caches.match(event.request).then(cachedResponse => cachedResponse || caches.match('./offline.html')))
-  );
+        fetch(event.request)
+            .catch(() => caches.match(event.request))
+    );
 });

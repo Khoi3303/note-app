@@ -1,0 +1,147 @@
+﻿.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.user-info h2 {
+    margin: 0;
+    font-size: 28px;
+}
+.note-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.create-box,
+.label-panel,
+.settings-panel,
+.note-card {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+.label-panel {
+    position: relative;
+}
+.label-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.status-row span {
+    min-width: 0;
+}
+.status-row .btn-save-now {
+    margin-left: auto;
+}
+.settings-controls {
+    display: flex;
+    gap: 18px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.settings-controls label,
+.settings-controls button,
+.settings-controls select {
+    white-space: nowrap;
+}
+@media (max-width: 720px) {
+    .settings-controls {
+        flex-wrap: wrap;
+    }
+    .settings-controls label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+    .settings-controls select {
+        width: 100%;
+        min-width: 0;
+    }
+}
+.autosave-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.autosave-label input {
+    width: auto;
+}
+.label-add-box {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+.label-add-box input {
+    flex: 1;
+}
+.label-add-box button {
+    width: auto;
+    background: var(--primary);
+    color: white;
+}
+.note-form-row {
+    display: grid;
+    gap: 16px;
+}
+label span {
+    color: var(--text);
+}
+.unverified-alert {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    margin-bottom: 18px;
+}
+.unverified-alert button {
+    background: #111827;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 120px;
+}
+.note-actions button {
+    min-width: 90px;
+}
+.notes-empty {
+    text-align: center;
+    color: #6b7280;
+    padding: 40px 20px;
+}
+.label-select {
+    margin-top: 20px;
+}
