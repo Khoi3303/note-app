@@ -144,8 +144,8 @@ Sau đó copy toàn bộ nội dung sau vào file `.env`:
 PORT=8080 (có thể đổi cổng nếu cổng đã được dùng)
 
 DB_USER=sa
-DB_PASSWORD=123456 (hoặc mật khẩu bạn đặt cho tài khoản sa ở SQL)
-DB_SERVER=localhost (hoặc tên server)
+DB_PASSWORD=123456 (hoặc mật khẩu đã đặt cho tài khoản sa ở SQL)
+DB_SERVER=localhost (hoặc tên server SQL)
 DB_NAME=FinalProject_NoteApp
 
 JWT_SECRET=BiMatToanDiAemA
