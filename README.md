@@ -2,7 +2,7 @@
 
 ## 📌 Giới thiệu
 
-Đây là đồ án cuối kỳ môn **Công nghệ phần mềm**.
+Đây là đồ án cuối kỳ môn **Lập trình web và ứng dụng**.
 
 Ứng dụng Note App hỗ trợ:
 
@@ -40,7 +40,7 @@
 
 ## Libraries
 
-* bcrypt
+* bcryptjs
 * jsonwebtoken
 * multer
 * nodemailer
@@ -61,7 +61,17 @@ git clone https://github.com/Khoi3303/note-app.git
 
 # 📦 Cài thư viện
 
-Mở terminal tại thư mục project:
+## Bước 1: Mở project bằng VS Code
+
+## Bước 2: Open đúng thư mục:
+
+```text
+source
+```
+
+## Bước 3: Mở terminal tại thư mục source
+
+Sau đó chạy:
 
 ```bash
 npm install
@@ -126,22 +136,30 @@ Tạo file:
 .env
 ```
 
-ở thư mục gốc project.
+ở thư mục gốc project (`source`).
 
-Ví dụ:
+Sau đó copy toàn bộ nội dung sau vào file `.env`:
 
 ```env
 PORT=8080
 
 DB_USER=sa
-DB_PASSWORD=your_password
+DB_PASSWORD=123456
 DB_SERVER=localhost
-DB_DATABASE=FinalProject_NoteApp
+DB_NAME=FinalProject_NoteApp
 
-JWT_SECRET=your_secret_key
+JWT_SECRET=BiMatToanDiAemA
 
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
+APP_BASE_URL=http://localhost:8080
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+
+SMTP_FROM=your_email@gmail.com
 ```
 
 ---
@@ -162,20 +180,27 @@ https://myaccount.google.com/apppasswords
 
 ## Bước 3:
 
-Dùng App Password thay cho mật khẩu Gmail trong `.env`
+Điền Gmail và App Password vào file `.env`
 
 Ví dụ:
 
 ```env
-EMAIL_USER=example@gmail.com
-EMAIL_PASS=abcd efgh ijkl mnop
+SMTP_USER=example@gmail.com
+SMTP_PASS=abcdefghijklmnop (có cách nếu code có)
+SMTP_FROM=example@gmail.com
 ```
 
 ---
 
 # ▶️ Chạy project
 
-Mở terminal:
+Mở terminal tại thư mục:
+
+```text
+source
+```
+
+Sau đó chạy:
 
 ```bash
 npm run dev
@@ -246,4 +271,4 @@ http://localhost:8080
 
 ---
 
-Final Project - Software Engineering
+* Final Project - Software Engineering
