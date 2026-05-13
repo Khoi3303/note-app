@@ -271,4 +271,12 @@ http://localhost:8080 (hoặc cổng mới sửa)
 
 ---
 
+## 🌍 Online Deployment
+
+Frontend Deployment:
+
+https://note-app-two-vert.vercel.app/
+
+---
+
 * Final Project - Software Engineering
