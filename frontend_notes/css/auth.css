@@ -301,6 +301,7 @@ body.dark-mode
 .auth-theme-toggle button:hover {
     transform: translateY(-2px);
 }
+
 .auth-input{
     width:100%;
     box-sizing:border-box;
