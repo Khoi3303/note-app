@@ -280,6 +280,9 @@ window.addEventListener('load', async () => {
     setupWebSocket();
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
+    window.addEventListener('beforeunload', () => {
+        saveDraft();
+    });
 });
 function openChangePasswordModal() {
     const modal =
