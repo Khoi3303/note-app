@@ -124,7 +124,7 @@ Security
 ### Sau đó:
 
 * Enable Login
-* Đặt password cho tài khoản sa
+* Đặt password cho tài khoản sa (hoặc 123456 như hướng dẫn .env bên dưới)
 
 ---
 
@@ -141,16 +141,16 @@ Tạo file:
 Sau đó copy toàn bộ nội dung sau vào file `.env`:
 
 ```env
-PORT=8080
+PORT=8080 (có thể đổi cổng nếu cổng đã được dùng)
 
 DB_USER=sa
-DB_PASSWORD=123456
-DB_SERVER=localhost
+DB_PASSWORD=123456 (hoặc mật khẩu bạn đặt cho tài khoản sa ở SQL)
+DB_SERVER=localhost (hoặc tên server)
 DB_NAME=FinalProject_NoteApp
 
 JWT_SECRET=BiMatToanDiAemA
 
-APP_BASE_URL=http://localhost:8080
+APP_BASE_URL=http://localhost:8080 (có thể đổi cổng nhưng phải giống cổng PORT ở trên)
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
