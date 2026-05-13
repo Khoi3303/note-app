@@ -210,7 +210,7 @@ Nếu thành công sẽ hiển thị:
 
 ```text
 Server chạy tại:
-http://localhost:8080
+http://localhost:8080 (hoặc cổng mới đã sửa)
 ```
 
 ---
@@ -218,7 +218,7 @@ http://localhost:8080
 # 🌐 Link chạy project
 
 ```text
-http://localhost:8080
+http://localhost:8080 (hoặc cổng mới sửa)
 ```
 
 ---
