@@ -414,7 +414,7 @@ Nếu bạn đổi `PORT` trong `.env`, hãy truy cập theo cổng mới.
 Frontend deployment:
 
 ```text
-https://note-app-two-vert.vercel.app/
+https://note-app-ir52.vercel.app/
 ```
 
 ---
