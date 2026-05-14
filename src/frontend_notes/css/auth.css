@@ -8,6 +8,7 @@
         background 0.25s ease,
         color 0.25s ease;
 }
+
 body:not(.dark-mode).auth-page {
     background:
         linear-gradient(

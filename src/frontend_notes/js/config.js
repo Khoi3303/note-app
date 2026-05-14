@@ -1,5 +1,7 @@
 const token = localStorage.getItem('token');
+
 const displayName = localStorage.getItem('displayName');
+
 const apiHost = window.location.origin;
 
 if (!token) {
