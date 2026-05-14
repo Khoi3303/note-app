@@ -11,6 +11,13 @@
 
 ---
 
+## 📺 Video Demo
+
+**Xem video demo sản phẩm tại đây:**  
+https://drive.google.com/file/d/1a-MZyWk2Dn17MCbTJoEBeNvx5LX8rS91/view?fbclid=IwY2xjawRyIN5leHRuA2FlbQIxMABicmlkETFiZVltRFNjSWpJYThxbEE4c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHghexc4sRBxl90yC9FEWUyfCk-OGBn5XJnlJ8IvxARLJvqOzna47RodWAOpC_aem_ODI9vB2MoGLmJ6LVEe4r3g
+
+---
+
 ## 🚀 Quick Start
 
 Chạy project theo đúng các bước đã cấu hình sẵn:
