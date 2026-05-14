@@ -428,5 +428,4 @@ https://note-app-two-vert.vercel.app/
 - Ghi chú có thể khóa bằng mật khẩu riêng.
 
 ---
-
 *Final Project - Software Engineering*
