@@ -2,7 +2,7 @@ const token = localStorage.getItem('token');
 
 const displayName = localStorage.getItem('displayName');
 
-const apiHost = window.location.origin;
+const apiHost = 'https://note-app-backend-3mbr.onrender.com';
 
 if (!token) {
     window.location.href = 'index.html';
