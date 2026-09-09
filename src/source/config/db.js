@@ -6,22 +6,13 @@ const config = {
     password: process.env.DB_PASSWORD,
     server: process.env.DB_SERVER,
     database: process.env.DB_NAME,
+    port: parseInt(process.env.DB_PORT || '1433', 10), // Bổ sung cổng 1433 rõ ràng
     options: {
         encrypt: true,
         trustServerCertificate: true,
     },
 };
 
-const connectDB = async () => {
-    try {
-        await sql.connect(config);
-        console.log('Kết nối SQL Server thành công!');
-    } catch (err) {
-        console.error('Lỗi kết nối CSDL:', err);
-    }
-};
-
-module.exports = { sql, connectDB };
 const poolPromise = new sql.ConnectionPool(config)
     .connect()
     .then(pool => {
@@ -29,8 +20,9 @@ const poolPromise = new sql.ConnectionPool(config)
         return pool;
     })
     .catch(err => {
-        console.error('Lỗi kết nối CSDL:', err);
-        process.exit(1);
+        console.error('Lỗi kết nối CSDL chi tiết:', err);
+        // Không gọi process.exit(1) để tránh làm sập cả web server
+        return null;
     });
 
 module.exports = {
