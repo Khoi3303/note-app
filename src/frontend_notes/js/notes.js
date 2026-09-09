@@ -1,6 +1,3 @@
-if (typeof apiHost === 'undefined') {
-    var apiHost = 'https://note-app-backend-3mbr.onrender.com';
-}
 let lastAutoSavedFileSignature = null;
 
 function showLoadingNotes() {
