@@ -164,9 +164,12 @@
                 isLoginMode
                     ? '/api/auth/login'
                     : '/api/auth/register';
+
+            const BACKEND_URL = 'https://note-app-backend-3mbr.onrender.com';
+
             try {
                 const response = await fetch(
-                    `${window.location.origin}${endpoint}`,
+                    `${BACKEND_URL}${endpoint}`,
                     {
                         method: 'POST',
                         headers: {
