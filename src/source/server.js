@@ -13,7 +13,7 @@ app.use(cors({
 }));
 
 // Xử lý preflight request cho tất cả các route
-app.options('*', cors());
+app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
