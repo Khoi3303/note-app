@@ -1,4 +1,4 @@
-const apiHost = 'https://note-app-backend-3mbr.onrender.com';
+window.apiHost = 'https://note-app-backend-3mbr.onrender.com';
 let selectedAvatarColor = 'blue';
 
 async function saveDraft() {

@@ -1,7 +1,3 @@
-if (typeof apiHost === 'undefined') {
-    var apiHost = 'https://note-app-backend-3mbr.onrender.com';
-}
-
 async function fetchLabels() {
     try {
         const response = await fetch(`${apiHost}/api/notes/labels`, {
