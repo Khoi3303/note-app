@@ -1,4 +1,7 @@
-﻿let lastAutoSavedFileSignature = null;
+if (typeof apiHost === 'undefined') {
+    var apiHost = 'https://note-app-backend-3mbr.onrender.com';
+}
+let lastAutoSavedFileSignature = null;
 
 function showLoadingNotes() {
     const container = document.getElementById('notes-container');
@@ -118,76 +121,26 @@ function renderNotes(notes) {
     if (!container) return;
     const searchText = document.getElementById('search-input')?.value.trim().toLowerCase() || '';
     const filtered = [...notes]
-    .filter(note => {
-
-        const titleMatch =
-            note.title &&
-            note.title
-                .toLowerCase()
-                .includes(searchText);
-
-        const contentMatch =
-            note.content &&
-            note.content
-                .toLowerCase()
-                .includes(searchText);
-
-        const labelMatch =
-            note.labels &&
-            note.labels.some(label =>
-                label.name
-                    .toLowerCase()
-                    .includes(searchText)
-            );
-
-        const activeLabel =
-            currentLabelFilterId
-                ? note.labels.some(
-                    label =>
-                        label.id ===
-                        currentLabelFilterId
-                )
+        .filter(note => {
+            const titleMatch = note.title && note.title.toLowerCase().includes(searchText);
+            const contentMatch = note.content && note.content.toLowerCase().includes(searchText);
+            const labelMatch = note.labels && note.labels.some(label => label.name.toLowerCase().includes(searchText));
+            const activeLabel = currentLabelFilterId
+                ? note.labels.some(label => label.id === currentLabelFilterId)
                 : true;
 
-        return (
-            activeLabel &&
-            (
-                titleMatch ||
-                contentMatch ||
-                labelMatch ||
-                searchText === ''
-            )
-        );
-    })
+            return activeLabel && (titleMatch || contentMatch || labelMatch || searchText === '');
+        })
+        .sort((a, b) => {
+            const aPinned = a.is_pinned === true || a.is_pinned === 1 || a.is_pinned === '1';
+            const bPinned = b.is_pinned === true || b.is_pinned === 1 || b.is_pinned === '1';
 
-    .sort((a, b) => {
+            if (aPinned && !bPinned) return -1;
+            if (!aPinned && bPinned) return 1;
 
-        const aPinned =
-            a.is_pinned === true ||
-            a.is_pinned === 1 ||
-            a.is_pinned === '1';
+            return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+        });
 
-        const bPinned =
-            b.is_pinned === true ||
-            b.is_pinned === 1 ||
-            b.is_pinned === '1';
-
-        if (aPinned && !bPinned) {
-            return -1;
-        }
-
-        if (!aPinned && bPinned) {
-            return 1;
-        }
-
-        return new Date(
-            b.updated_at ||
-            b.created_at
-        ) - new Date(
-            a.updated_at ||
-            a.created_at
-        );
-    });
     if (!filtered.length) {
         showEmptyState(searchText ? 'Không tìm thấy kết quả phù hợp.' : 'Chưa có ghi chú nào.');
         return;
@@ -223,51 +176,19 @@ function renderNoteCard(note) {
                 <div class="note-title-stack">
                     <div class="note-title-row">
                         <h3>${note.title || 'Ghi chú không có tiêu đề'}</h3>
-                        ${isPinned ? `
-                            <span class="note-status-icon pinned-icon">
-                                📌
-                            </span>
-                        ` : ''}
-                        ${isLocked ? `
-                            <span class="note-status-icon locked-icon">
-                                🔒
-                            </span>
-                        ` : ''}
+                        ${isPinned ? `<span class="note-status-icon pinned-icon">📌</span>` : ''}
+                        ${isLocked ? `<span class="note-status-icon locked-icon">🔒</span>` : ''}
                         ${titleLabels}
                     </div>
                     <div class="note-card-meta">${noteMeta}</div>
                 </div>
                 <div class="note-card-actions">
-                    ${canPin ? `
-                        <button class="btn-pin" type="button" onclick="event.stopPropagation(); togglePin(${note.id})">
-                            <i class="fa-solid fa-thumbtack"></i> ${isPinned ? 'Bỏ ghim' : 'Ghim'}
-                        </button>
-                    ` : ''}
-                    ${canLock ? `
-                        <button class="btn-lock" type="button" onclick="event.stopPropagation(); toggleLock(${note.id}, ${isLocked})">
-                            <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'}"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
-                        </button>
-                    ` : ''}
-                    ${canShare ? `
-                        <button class="btn-share" type="button" onclick="openShareDialog(event, ${note.id})">
-                            <i class="fa-solid fa-share-from-square"></i> Chia sẻ
-                        </button>
-                    ` : ''}
-                    ${canRemoveShared ? `
-                        <button class="btn-remove" type="button" onclick="removeSharedNote(event, ${note.id})">
-                            <i class="fa-solid fa-eye-slash"></i> Bỏ xem
-                        </button>
-                    ` : ''}
-                    ${canEdit ? `
-                        <button class="btn-edit" type="button" onclick="editNote(event, ${note.id})">
-                            <i class="fa-solid fa-pen"></i> Sửa
-                        </button>
-                    ` : ''}
-                    ${canDelete ? `
-                        <button class="btn-delete" type="button" onclick="event.stopPropagation(); deleteNote(${note.id})">
-                            <i class="fa-solid fa-trash"></i> Xóa
-                        </button>
-                    ` : ''}
+                    ${canPin ? `<button class="btn-pin" type="button" onclick="event.stopPropagation(); togglePin(${note.id})"><i class="fa-solid fa-thumbtack"></i> ${isPinned ? 'Bỏ ghim' : 'Ghim'}</button>` : ''}
+                    ${canLock ? `<button class="btn-lock" type="button" onclick="event.stopPropagation(); toggleLock(${note.id}, ${isLocked})"><i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'}"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}</button>` : ''}
+                    ${canShare ? `<button class="btn-share" type="button" onclick="openShareDialog(event, ${note.id})"><i class="fa-solid fa-share-from-square"></i> Chia sẻ</button>` : ''}
+                    ${canRemoveShared ? `<button class="btn-remove" type="button" onclick="removeSharedNote(event, ${note.id})"><i class="fa-solid fa-eye-slash"></i> Bỏ xem</button>` : ''}
+                    ${canEdit ? `<button class="btn-edit" type="button" onclick="editNote(event, ${note.id})"><i class="fa-solid fa-pen"></i> Sửa</button>` : ''}
+                    ${canDelete ? `<button class="btn-delete" type="button" onclick="event.stopPropagation(); deleteNote(${note.id})"><i class="fa-solid fa-trash"></i> Xóa</button>` : ''}
                 </div>
             </div>
             <div class="note-content">${isLocked && note.access_level !== 'owner' ? '[Đã khóa]' : note.content || '<i>Không có nội dung</i>'}</div>
@@ -309,9 +230,7 @@ async function fetchNotes() {
     }
 }
 
-function onNoteInput() {
-    // legacy hook; autosave được xử lý qua event delegation trong app.js
-}
+function onNoteInput() {}
 
 function resetForm() {
     editingNoteId = null;
@@ -398,7 +317,6 @@ function editNote(eventOrId, id) {
 }
 
 async function deleteNote(id) {
-    // Tìm note để kiểm tra password
     const note = globalNotes.find(n => n.id === id);
     if (!note) {
         showToast('Không tìm thấy ghi chú.', 'error');
@@ -408,7 +326,6 @@ async function deleteNote(id) {
     let confirmed = false;
 
     if (note.note_password) {
-        // Nếu có password, yêu cầu nhập
         const { value: password } = await Swal.fire({
             title: 'Nhập mật khẩu ghi chú',
             input: 'password',
@@ -430,7 +347,6 @@ async function deleteNote(id) {
 
         if (!password) return;
 
-        // Verify password
         try {
             const response = await fetch(`${apiHost}/api/notes/${id}/verify-password`, {
                 method: 'POST',
@@ -453,7 +369,6 @@ async function deleteNote(id) {
             return;
         }
     } else {
-        // Không có password, confirm bình thường
         confirmed = await Swal.fire({
             title: 'Xóa ghi chú?',
             text: 'Hành động này không thể hoàn tác.',
@@ -626,6 +541,7 @@ async function resendVerificationEmail() {
         showToast(error.message || 'Gửi lại email thất bại.', 'error');
     }
 }
+
 function openShareDialog(eventOrId, noteId) {
     let event = null;
     if (typeof eventOrId === 'number' || typeof eventOrId === 'string') {
@@ -636,69 +552,37 @@ function openShareDialog(eventOrId, noteId) {
     event?.stopPropagation();
     closeNoteModal();
     sharingNoteId = noteId;
-    const dialog =
-        document.getElementById('share-dialog');
+    const dialog = document.getElementById('share-dialog');
     if (dialog) {
         dialog.classList.add('show');
     }
 }
+
 async function shareNote() {
-    const email =
-        document
-            .getElementById('share-email')
-            ?.value
-            .trim();
-    const permission =
-        document
-            .getElementById('share-permission')
-            ?.value;
+    const email = document.getElementById('share-email')?.value.trim();
+    const permission = document.getElementById('share-permission')?.value;
     if (!email) {
-        showToast(
-            'Vui lòng nhập email.',
-            'warning'
-        );
+        showToast('Vui lòng nhập email.', 'warning');
         return;
     }
     try {
-        const response = await fetch(
-            `${apiHost}/api/notes/${sharingNoteId}/share`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization:
-                        'Bearer ' + token
-                },
-                body: JSON.stringify({
-                    email,
-                    permission
-                })
-            }
-        );
+        const response = await fetch(`${apiHost}/api/notes/${sharingNoteId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + token
+            },
+            body: JSON.stringify({ email, permission })
+        });
         if (!response.ok) {
-            const data =
-                await response.json()
-                    .catch(() => ({}));
-            throw new Error(
-                data.message ||
-                'Không thể chia sẻ ghi chú.'
-            );
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.message || 'Không thể chia sẻ ghi chú.');
         }
-        showToast(
-            'Đã chia sẻ ghi chú.',
-            'success'
-        );
+        showToast('Đã chia sẻ ghi chú.', 'success');
         closeShareDialog();
     } catch (error) {
-        console.error(
-            'shareNote error:',
-            error
-        );
-        showToast(
-            error.message ||
-            'Chia sẻ thất bại.',
-            'error'
-        );
+        console.error('shareNote error:', error);
+        showToast(error.message || 'Chia sẻ thất bại.', 'error');
     }
 }
 
@@ -748,7 +632,6 @@ async function removeSharedNote(eventOrId, id) {
     }
 }
 
-// Modal view cho note
 function openNoteModal(noteId) {
     const note = globalNotes.find(item => item.id === noteId);
     if (!note) return;
