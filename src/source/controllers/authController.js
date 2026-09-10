@@ -4,22 +4,24 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { poolPromise, sql } = require('../config/db');
 
-// Khởi tạo transporter dùng chung
+// Khởi tạo transporter với timeout kiểm soát lỗi nghẽn mạng
 const createTransporter = () => {
     return nodemailer.createTransport({
         service: 'gmail',
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT) || 465,
-        secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465,
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true', // false cho port 587
         auth: {
             user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            pass: process.env.SMTP_PASS?.replace(/\s+/g, ''), // Tự động dọn sạch mọi khoảng trắng nếu có
         },
+        connectionTimeout: 10000, // Tối đa 10s kết nối
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
     });
 };
 
 const sendVerificationEmail = async (email, token) => {
-    // API xác thực nằm ở Backend Render
     const backendUrl = process.env.BACKEND_BASE_URL || process.env.APP_BASE_URL || 'https://note-app-backend-3mbr.onrender.com';
     const verificationUrl = `${backendUrl}/api/auth/verify-email/${token}`;
 
@@ -51,7 +53,6 @@ const sendVerificationEmail = async (email, token) => {
 };
 
 const sendPasswordResetEmail = async (email, token, otp) => {
-    // Giao diện đặt lại mật khẩu nằm ở Frontend Vercel
     const frontendUrl = process.env.FRONTEND_BASE_URL || 'https://note-app-ir52.vercel.app';
     const resetUrl = `${frontendUrl}/reset_password.html?token=${encodeURIComponent(token)}`;
 
@@ -121,7 +122,11 @@ const register = async (req, res) => {
             .input('verification_token', sql.VarChar(255), verificationToken)
             .query(`INSERT INTO Users (email, password_hash, display_name, avatar_color, email_verified, verification_token) VALUES (@email, @password_hash, @display_name, @avatar_color, @email_verified, @verification_token)`);
         
-        await sendVerificationEmail(email, verificationToken);
+        // Gửi ngầm không chặn luồng đăng ký
+        sendVerificationEmail(email, verificationToken).catch(err => {
+            console.error('Lỗi ngầm khi gửi email xác thực:', err);
+        });
+
         res.status(201).json({ message: 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.' });
     } catch (error) {
         console.error('Lỗi khi đăng ký:', error);
@@ -157,7 +162,11 @@ const requestPasswordReset = async (req, res) => {
             .input('reset_expires', sql.DateTime, resetExpires)
             .query(`UPDATE Users SET reset_token = @reset_token, reset_otp = @reset_otp, reset_expires = @reset_expires WHERE id = @id`);
 
-        await sendPasswordResetEmail(email, resetToken, resetOtp);
+        // Gửi ngầm không làm đơ trang đổi mật khẩu
+        sendPasswordResetEmail(email, resetToken, resetOtp).catch(err => {
+            console.error('Lỗi ngầm khi gửi email đặt lại mật khẩu:', err);
+        });
+
         res.status(200).json({ message: 'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn.' });
     } catch (error) {
         console.error('Lỗi khi yêu cầu reset mật khẩu:', error);
@@ -328,7 +337,10 @@ const resendVerificationEmail = async (req, res) => {
             .input('verification_token', sql.VarChar, verificationToken)
             .query('UPDATE Users SET verification_token = @verification_token WHERE id = @id');
 
-        await sendVerificationEmail(user.email, verificationToken);
+        sendVerificationEmail(user.email, verificationToken).catch(err => {
+            console.error('Lỗi ngầm khi gửi lại email xác thực:', err);
+        });
+
         res.status(200).json({ message: 'Đã gửi lại email kích hoạt. Vui lòng kiểm tra hộp thư.' });
     } catch (error) {
         console.error('Lỗi khi gửi lại email kích hoạt:', error);
