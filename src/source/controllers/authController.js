@@ -4,34 +4,46 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const { poolPromise, sql } = require('../config/db');
 
-const sendVerificationEmail = async (email, token) => {
-    const appUrl = process.env.APP_BASE_URL || 'http://localhost:8080';
-    const verificationUrl = `${appUrl}/api/auth/verify-email/${token}`;
-
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('SMTP chưa cấu hình. Link kích hoạt:', verificationUrl);
-        return;
-    }
-
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
+// Khởi tạo transporter dùng chung
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        service: 'gmail',
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: process.env.SMTP_SECURE === 'true' || Number(process.env.SMTP_PORT) === 465,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
         },
     });
+};
+
+const sendVerificationEmail = async (email, token) => {
+    // API xác thực nằm ở Backend Render
+    const backendUrl = process.env.BACKEND_BASE_URL || process.env.APP_BASE_URL || 'https://note-app-backend-3mbr.onrender.com';
+    const verificationUrl = `${backendUrl}/api/auth/verify-email/${token}`;
+
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.warn('SMTP chưa cấu hình. Link kích hoạt:', verificationUrl);
+        return;
+    }
+
+    const transporter = createTransporter();
 
     const mailOptions = {
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: email,
-        subject: 'Kích hoạt tài khoản',
+        subject: 'Kích hoạt tài khoản - Smart Notes',
         html: `
-            <p>Chào bạn,</p>
-            <p>Vui lòng nhấp vào link dưới đây để kích hoạt tài khoản:</p>
-            <a href="${verificationUrl}">Kích hoạt tài khoản</a>
-            <p>Nếu bạn không yêu cầu kích hoạt này, hãy bỏ qua email.</p>
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                <h2 style="color: #2563eb;">Chào mừng bạn đến với Smart Notes!</h2>
+                <p>Vui lòng nhấp vào nút dưới đây để kích hoạt tài khoản của bạn:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Kích hoạt tài khoản</a>
+                </div>
+                <p style="color: #64748b; font-size: 13px;">Nếu nút trên không hoạt động, bạn có thể copy link sau dán vào trình duyệt:<br><a href="${verificationUrl}">${verificationUrl}</a></p>
+                <p style="color: #64748b; font-size: 13px;">Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email.</p>
+            </div>
         `,
     };
 
@@ -39,38 +51,36 @@ const sendVerificationEmail = async (email, token) => {
 };
 
 const sendPasswordResetEmail = async (email, token, otp) => {
-    const appUrl = process.env.APP_BASE_URL || 'http://localhost:8080';
-    const resetUrl = `${appUrl}/reset_password.html?token=${encodeURIComponent(token)}`;
+    // Giao diện đặt lại mật khẩu nằm ở Frontend Vercel
+    const frontendUrl = process.env.FRONTEND_BASE_URL || 'https://note-app-ir52.vercel.app';
+    const resetUrl = `${frontendUrl}/reset_password.html?token=${encodeURIComponent(token)}`;
 
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.warn('SMTP chưa cấu hình. Link reset:', resetUrl);
         console.warn('OTP reset:', otp);
         return;
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+    const transporter = createTransporter();
 
     const mailOptions = {
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: email,
-        subject: 'Yêu cầu đặt lại mật khẩu',
+        subject: 'Yêu cầu đặt lại mật khẩu - Smart Notes',
         html: `
-            <p>Chào bạn,</p>
-            <p>Bạn đã yêu cầu đặt lại mật khẩu. Bạn có thể sử dụng một trong hai cách dưới đây:</p>
-            <ul>
-                <li>Nhấn vào link sau để mở trang đổi mật khẩu: <a href="${resetUrl}">Đổi mật khẩu</a></li>
-                <li>Hoặc dùng mã OTP: <strong>${otp}</strong></li>
-            </ul>
-            <p>Mã OTP có hiệu lực trong 15 phút.</p>
-            <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+                <h2 style="color: #2563eb;">Yêu cầu đặt lại mật khẩu</h2>
+                <p>Bạn có thể sử dụng một trong hai cách dưới đây để đổi mật khẩu mới:</p>
+                <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px; margin: 16px 0;">
+                    <p style="margin: 0;">Mã OTP của bạn: <strong style="font-size: 20px; color: #2563eb; letter-spacing: 2px;">${otp}</strong></p>
+                    <small style="color: #64748b;">(Có hiệu lực trong 15 phút)</small>
+                </div>
+                <p>Hoặc nhấp trực tiếp vào đường link sau:</p>
+                <div style="text-align: center; margin: 24px 0;">
+                    <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Đổi mật khẩu ngay</a>
+                </div>
+                <p style="color: #64748b; font-size: 13px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này để bảo vệ tài khoản.</p>
+            </div>
         `,
     };
 
@@ -110,6 +120,7 @@ const register = async (req, res) => {
             .input('email_verified', sql.Bit, 0)
             .input('verification_token', sql.VarChar(255), verificationToken)
             .query(`INSERT INTO Users (email, password_hash, display_name, avatar_color, email_verified, verification_token) VALUES (@email, @password_hash, @display_name, @avatar_color, @email_verified, @verification_token)`);
+        
         await sendVerificationEmail(email, verificationToken);
         res.status(201).json({ message: 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.' });
     } catch (error) {
@@ -260,6 +271,7 @@ const verifyEmail = async (req, res) => {
     try {
         const { token } = req.params;
         const pool = await poolPromise;
+        const frontendUrl = process.env.FRONTEND_BASE_URL || 'https://note-app-ir52.vercel.app';
 
         const result = await pool.request()
             .input('token', sql.VarChar, token)
@@ -267,18 +279,27 @@ const verifyEmail = async (req, res) => {
 
         const user = result.recordset[0];
         if (!user) {
-            return res.status(400).send('<h2>Token xác thực không hợp lệ hoặc đã được sử dụng.</h2>');
+            return res.status(400).send(`
+                <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                    <h2 style="color: #ef4444;">Token xác thực không hợp lệ hoặc đã được sử dụng.</h2>
+                    <a href="${frontendUrl}" style="color: #2563eb; text-decoration: none; font-weight: bold;">Quay lại trang chủ</a>
+                </div>
+            `);
         }
 
-        if (user.email_verified) {
-            return res.status(200).send('<h2>Tài khoản đã được xác thực trước đó.</h2>');
+        if (!user.email_verified) {
+            await pool.request()
+                .input('id', sql.Int, user.id)
+                .query('UPDATE Users SET email_verified = 1, verification_token = NULL WHERE id = @id');
         }
 
-        await pool.request()
-            .input('id', sql.Int, user.id)
-            .query('UPDATE Users SET email_verified = 1, verification_token = NULL WHERE id = @id');
-
-        res.status(200).send('<h2>Xác thực thành công! Bạn đã kích hoạt tài khoản.</h2>');
+        res.status(200).send(`
+            <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
+                <h2 style="color: #22c55e;">Xác thực thành công! Tài khoản của bạn đã được kích hoạt.</h2>
+                <p>Bạn có thể quay lại trang ứng dụng để đăng nhập ngay bây giờ.</p>
+                <a href="${frontendUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 15px;">Đến trang Đăng nhập</a>
+            </div>
+        `);
     } catch (error) {
         console.error('Lỗi khi xác thực email:', error);
         res.status(500).send('<h2>Lỗi server khi xác thực. Vui lòng thử lại sau.</h2>');
@@ -314,6 +335,7 @@ const resendVerificationEmail = async (req, res) => {
         res.status(500).json({ message: 'Lỗi server!' });
     }
 };
+
 const getProfile = async (req, res) => {
     try {
         const pool = await poolPromise;
@@ -331,9 +353,7 @@ const getProfile = async (req, res) => {
             `);
         const user = result.recordset[0];
         if (!user) {
-            return res.status(404).json({
-                message: 'Không tìm thấy user'
-            });
+            return res.status(404).json({ message: 'Không tìm thấy user' });
         }
         res.status(200).json({
             id: user.id,
@@ -344,17 +364,13 @@ const getProfile = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            message: 'Lỗi server'
-        });
+        res.status(500).json({ message: 'Lỗi server' });
     }
 };
+
 const updateProfile = async (req, res) => {
     try {
-        const {
-            displayName,
-            avatarColor
-        } = req.body;
+        const { displayName, avatarColor } = req.body;
         const pool = await poolPromise;
         await pool.request()
             .input('id', sql.Int, req.user.id)
@@ -367,62 +383,38 @@ const updateProfile = async (req, res) => {
                     avatar_color = @avatar_color
                 WHERE id = @id
             `);
-        res.status(200).json({
-            message: 'Cập nhật profile thành công'
-        });
+        res.status(200).json({ message: 'Cập nhật profile thành công' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            message: 'Lỗi server'
-        });
+        res.status(500).json({ message: 'Lỗi server' });
     }
 };
+
 const changePassword = async (req, res) => {
     try {
         const userId = req.user.id;
-        const {
-            oldPassword,
-            newPassword,
-            confirmPassword
-        } = req.body;
+        const { oldPassword, newPassword, confirmPassword } = req.body;
         if (!oldPassword || !newPassword || !confirmPassword) {
-            return res.status(400).json({
-                message: 'Vui lòng nhập đầy đủ thông tin!'
-            });
+            return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
         }
         if (newPassword !== confirmPassword) {
-            return res.status(400).json({
-                message: 'Xác nhận mật khẩu không khớp!'
-            });
+            return res.status(400).json({ message: 'Xác nhận mật khẩu không khớp!' });
         }
         if (newPassword.length < 6) {
-            return res.status(400).json({
-                message: 'Mật khẩu mới phải từ 6 ký tự!'
-            });
+            return res.status(400).json({ message: 'Mật khẩu mới phải từ 6 ký tự!' });
         }
-        // FIX QUAN TRỌNG
+
         const pool = await poolPromise;
         const result = await pool.request()
             .input('id', sql.Int, userId)
-            .query(`
-                SELECT *
-                FROM Users
-                WHERE id = @id
-            `);
+            .query(`SELECT * FROM Users WHERE id = @id`);
         const user = result.recordset[0];
         if (!user) {
-            return res.status(404).json({
-                message: 'Không tìm thấy tài khoản!'
-            });
+            return res.status(404).json({ message: 'Không tìm thấy tài khoản!' });
         }
-        const isMatch = await bcrypt.compare(
-            oldPassword,
-            user.password_hash
-        );
+        const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
         if (!isMatch) {
-            return res.status(400).json({
-                message: 'Mật khẩu cũ không đúng!'
-            });
+            return res.status(400).json({ message: 'Mật khẩu cũ không đúng!' });
         }
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await pool.request()
@@ -433,16 +425,13 @@ const changePassword = async (req, res) => {
                 SET password_hash = @password
                 WHERE id = @id
             `);
-        res.status(200).json({
-            message: 'Đổi mật khẩu thành công!'
-        });
+        res.status(200).json({ message: 'Đổi mật khẩu thành công!' });
     } catch (error) {
         console.error('Lỗi đổi mật khẩu:', error);
-        res.status(500).json({
-            message: 'Lỗi server!'
-        });
+        res.status(500).json({ message: 'Lỗi server!' });
     }
 };
+
 module.exports = {
     changePassword,
     register,
