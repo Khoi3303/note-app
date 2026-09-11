@@ -7,18 +7,21 @@ const { poolPromise, sql } = require('../config/db');
 // Khởi tạo transporter với timeout kiểm soát lỗi nghẽn mạng
 const createTransporter = () => {
     return nodemailer.createTransport({
-        service: 'gmail',
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true', // false cho port 587
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: {
             user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS?.replace(/\s+/g, ''), // Tự động dọn sạch mọi khoảng trắng nếu có
+            pass: process.env.SMTP_PASS?.replace(/\s+/g, ''),
         },
-        connectionTimeout: 10000, // Tối đa 10s kết nối
+        tls: {
+            rejectUnauthorized: false // Bỏ qua lỗi bắt chẹt chứng chỉ mạng
+        },
+        connectionTimeout: 10000,
         greetingTimeout: 5000,
         socketTimeout: 10000,
     });
+};
 };
 
 const sendVerificationEmail = async (email, token) => {
