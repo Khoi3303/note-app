@@ -1,93 +1,77 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const { poolPromise, sql } = require('../config/db');
 
-// Khởi tạo transporter với timeout kiểm soát lỗi nghẽn mạng
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS?.replace(/\s+/g, ''),
+// Hàm gửi mail qua Resend REST API (HTTPS Cổng 443)
+const sendMailViaResend = async (toEmail, subject, htmlContent) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        console.warn('RESEND_API_KEY chưa được thiết lập trên Render.');
+        return;
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
         },
-        tls: {
-            rejectUnauthorized: false // Bỏ qua lỗi bắt chẹt chứng chỉ mạng
-        },
-        connectionTimeout: 10000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
+        body: JSON.stringify({
+            from: 'Smart Notes <onboarding@resend.dev>',
+            to: [toEmail],
+            subject: subject,
+            html: htmlContent
+        })
     });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(`Lỗi Resend API: ${JSON.stringify(data)}`);
+    }
+    return data;
 };
 
 const sendVerificationEmail = async (email, token) => {
     const backendUrl = process.env.BACKEND_BASE_URL || process.env.APP_BASE_URL || 'https://note-app-backend-3mbr.onrender.com';
     const verificationUrl = `${backendUrl}/api/auth/verify-email/${token}`;
 
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('SMTP chưa cấu hình. Link kích hoạt:', verificationUrl);
-        return;
-    }
-
-    const transporter = createTransporter();
-
-    const mailOptions = {
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: email,
-        subject: 'Kích hoạt tài khoản - Smart Notes',
-        html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-                <h2 style="color: #2563eb;">Chào mừng bạn đến với Smart Notes!</h2>
-                <p>Vui lòng nhấp vào nút dưới đây để kích hoạt tài khoản của bạn:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Kích hoạt tài khoản</a>
-                </div>
-                <p style="color: #64748b; font-size: 13px;">Nếu nút trên không hoạt động, bạn có thể copy link sau dán vào trình duyệt:<br><a href="${verificationUrl}">${verificationUrl}</a></p>
-                <p style="color: #64748b; font-size: 13px;">Nếu bạn không thực hiện đăng ký này, vui lòng bỏ qua email.</p>
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+            <h2 style="color: #2563eb;">Chào mừng bạn đến với Smart Notes!</h2>
+            <p>Vui lòng nhấp vào nút dưới đây để kích hoạt tài khoản của bạn:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Kích hoạt tài khoản</a>
             </div>
-        `,
-    };
+            <p style="color: #64748b; font-size: 13px;">Nếu nút trên không bấm được, bạn hãy copy link sau dán vào trình duyệt:<br><a href="${verificationUrl}">${verificationUrl}</a></p>
+            <p style="color: #64748b; font-size: 13px;">Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email.</p>
+        </div>
+    `;
 
-    await transporter.sendMail(mailOptions);
+    await sendMailViaResend(email, 'Kích hoạt tài khoản - Smart Notes', htmlContent);
 };
 
 const sendPasswordResetEmail = async (email, token, otp) => {
     const frontendUrl = process.env.FRONTEND_BASE_URL || 'https://note-app-ir52.vercel.app';
     const resetUrl = `${frontendUrl}/reset_password.html?token=${encodeURIComponent(token)}`;
 
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('SMTP chưa cấu hình. Link reset:', resetUrl);
-        console.warn('OTP reset:', otp);
-        return;
-    }
-
-    const transporter = createTransporter();
-
-    const mailOptions = {
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: email,
-        subject: 'Yêu cầu đặt lại mật khẩu - Smart Notes',
-        html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-                <h2 style="color: #2563eb;">Yêu cầu đặt lại mật khẩu</h2>
-                <p>Bạn có thể sử dụng một trong hai cách dưới đây để đổi mật khẩu mới:</p>
-                <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px; margin: 16px 0;">
-                    <p style="margin: 0;">Mã OTP của bạn: <strong style="font-size: 20px; color: #2563eb; letter-spacing: 2px;">${otp}</strong></p>
-                    <small style="color: #64748b;">(Có hiệu lực trong 15 phút)</small>
-                </div>
-                <p>Hoặc nhấp trực tiếp vào đường link sau:</p>
-                <div style="text-align: center; margin: 24px 0;">
-                    <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Đổi mật khẩu ngay</a>
-                </div>
-                <p style="color: #64748b; font-size: 13px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này để bảo vệ tài khoản.</p>
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
+            <h2 style="color: #2563eb;">Yêu cầu đặt lại mật khẩu</h2>
+            <p>Bạn có thể sử dụng một trong hai cách dưới đây để đổi mật khẩu:</p>
+            <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px; margin: 16px 0;">
+                <p style="margin: 0;">Mã OTP của bạn: <strong style="font-size: 20px; color: #2563eb; letter-spacing: 2px;">${otp}</strong></p>
+                <small style="color: #64748b;">(Có hiệu lực trong 15 phút)</small>
             </div>
-        `,
-    };
+            <p>Hoặc nhấp trực tiếp vào đường link sau:</p>
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Đổi mật khẩu ngay</a>
+            </div>
+            <p style="color: #64748b; font-size: 13px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này để bảo vệ tài khoản.</p>
+        </div>
+    `;
 
-    await transporter.sendMail(mailOptions);
+    await sendMailViaResend(email, 'Yêu cầu đặt lại mật khẩu - Smart Notes', htmlContent);
 };
 
 const generateVerificationToken = () => crypto.randomBytes(32).toString('hex');
@@ -124,9 +108,8 @@ const register = async (req, res) => {
             .input('verification_token', sql.VarChar(255), verificationToken)
             .query(`INSERT INTO Users (email, password_hash, display_name, avatar_color, email_verified, verification_token) VALUES (@email, @password_hash, @display_name, @avatar_color, @email_verified, @verification_token)`);
         
-        // Gửi ngầm không chặn luồng đăng ký
         sendVerificationEmail(email, verificationToken).catch(err => {
-            console.error('Lỗi ngầm khi gửi email xác thực:', err);
+            console.error('Lỗi khi gửi email xác thực qua Resend:', err);
         });
 
         res.status(201).json({ message: 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.' });
@@ -164,9 +147,8 @@ const requestPasswordReset = async (req, res) => {
             .input('reset_expires', sql.DateTime, resetExpires)
             .query(`UPDATE Users SET reset_token = @reset_token, reset_otp = @reset_otp, reset_expires = @reset_expires WHERE id = @id`);
 
-        // Gửi ngầm không làm đơ trang đổi mật khẩu
         sendPasswordResetEmail(email, resetToken, resetOtp).catch(err => {
-            console.error('Lỗi ngầm khi gửi email đặt lại mật khẩu:', err);
+            console.error('Lỗi khi gửi email đặt lại mật khẩu qua Resend:', err);
         });
 
         res.status(200).json({ message: 'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới email của bạn.' });
@@ -340,7 +322,7 @@ const resendVerificationEmail = async (req, res) => {
             .query('UPDATE Users SET verification_token = @verification_token WHERE id = @id');
 
         sendVerificationEmail(user.email, verificationToken).catch(err => {
-            console.error('Lỗi ngầm khi gửi lại email xác thực:', err);
+            console.error('Lỗi khi gửi lại email xác thực qua Resend:', err);
         });
 
         res.status(200).json({ message: 'Đã gửi lại email kích hoạt. Vui lòng kiểm tra hộp thư.' });
