@@ -22,7 +22,6 @@ const createTransporter = () => {
         socketTimeout: 10000,
     });
 };
-};
 
 const sendVerificationEmail = async (email, token) => {
     const backendUrl = process.env.BACKEND_BASE_URL || process.env.APP_BASE_URL || 'https://note-app-backend-3mbr.onrender.com';
